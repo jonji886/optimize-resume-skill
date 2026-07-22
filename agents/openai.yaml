@@ -1,0 +1,7 @@
+interface:
+  display_name: "简历深度优化"
+  short_description: "基于岗位 JD 诊断、精简并改写中文简历"
+  default_prompt: "使用 $optimize-resume 根据目标岗位 JD 诊断并改写我的简历。"
+
+policy:
+  allow_implicit_invocation: true
