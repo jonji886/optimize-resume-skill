@@ -41,17 +41,23 @@ def main():
     errors = []
     warnings = []
 
-    if not nonempty or not re.fullmatch(r"# [^#].+", nonempty[0][1]):
-        errors.append("第一行应为一级标题姓名，例如：# 张三")
-
-    if len(nonempty) < 2:
-        errors.append("缺少联系方式行")
+    if not nonempty:
+        errors.append("简历不能为空")
     else:
-        contact = nonempty[1][1]
-        if "手机/微信：" not in contact or "邮箱：" not in contact:
-            errors.append("姓名后的第一条非空行必须同时包含手机/微信和邮箱")
-        if "求职意向" in contact or "工作经验" in contact:
-            errors.append("顶部联系方式行不得包含求职意向或工作经验")
+        first_line = nonempty[0][1]
+        has_name_heading = bool(re.fullmatch(r"# [^#].+", first_line))
+        contact_index = 1 if has_name_heading else 0
+
+        if has_name_heading and len(nonempty) < 2:
+            errors.append("缺少联系方式行")
+        elif len(nonempty) <= contact_index:
+            errors.append("缺少联系方式行")
+        else:
+            contact = nonempty[contact_index][1]
+            if not re.search(r"手机(?:/微信)?：", contact) or "邮箱：" not in contact:
+                errors.append("联系方式行必须包含手机或手机/微信，以及邮箱")
+            if "求职意向" in contact or "工作经验" in contact:
+                errors.append("顶部联系方式行不得包含求职意向或工作经验")
 
     for section in REQUIRED_SECTIONS:
         if section not in lines:
@@ -109,4 +115,3 @@ def main():
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
