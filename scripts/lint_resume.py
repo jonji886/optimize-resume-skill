@@ -7,7 +7,13 @@ from pathlib import Path
 REQUIRED_SECTIONS = [
     "## 个人优势",
     "## 工作经历",
-    "## 核心技能",
+    "## 教育背景与认证",
+]
+
+ORDERED_SECTIONS = [
+    "## 个人优势",
+    "## 工作经历",
+    "## 项目经历",
     "## 教育背景与认证",
 ]
 
@@ -63,9 +69,9 @@ def main():
         if section not in lines:
             errors.append(f"缺少章节：{section}")
 
-    positions = [lines.index(section) for section in REQUIRED_SECTIONS if section in lines]
+    positions = [lines.index(section) for section in ORDERED_SECTIONS if section in lines]
     if positions != sorted(positions):
-        errors.append("章节顺序应为：个人优势、工作经历、核心技能、教育背景与认证")
+        errors.append("章节顺序应为：个人优势、工作经历、项目经历、教育背景与认证")
 
     personal = [line for line in section_lines(lines, "## 个人优势") if line.startswith("- ")]
     if personal and not 3 <= len(personal) <= 4:
