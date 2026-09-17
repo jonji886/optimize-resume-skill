@@ -96,9 +96,25 @@ Facts 与 Presentation 分离。首次为某个 JD 优化时，在简历同目�
 只有 Critical Missing Information（公司名称、职位、工作起止时间、经历归属、
 用户要求新增但真实性无法判断的事实）才允许先阻断并确认。
 
+## 运行模式与停止规则
+
+首次优化默认使用快速模式：`Intake → Fact Store/JD 证据矩阵 → 初稿 → 两道 Runtime Guard → 交付`。
+只有用户明确要求完整审查、深度审计或全面评估时，才加载额外语义规则并执行完整审查模式。
+
+运行时遵守以下限制：
+
+- `validate_claims.py` 和 `lint_resume.py` 只调用命令，不读取源码并手工模拟；
+- 正常交付不读取或运行 `evals/`、Quality Benchmark、LLM Judge；
+- `ERROR` 只针对报错位置修复，最多 2 轮；
+- `WARNING` 不触发全量重写，只做一次针对性判断；
+- 两道门禁均无 `ERROR` 后立即交付，不继续无限优化。
+
+每个阶段应输出一行进度，进度只报告状态和产物，不复述逐条规则或展开内部推理。若两轮修复后仍有 `ERROR`，停止继续思考并报告阻断原因。
+
 ## ATS 与 Recruiter Salience
 
-两个独立检查，不互相替代：
+两个独立检查，不互相替代。`validate_claims.py` 负责其中的机械检查；模型只在快速模式
+遇到相关 WARNING，或完整审查模式下补充关键词自然度和前段可见性的语义判断。
 
 | | ATS Coverage | Recruiter Salience |
 |---|---|---|
@@ -164,11 +180,12 @@ python3 scripts/validate_claims.py "张三-AI解决方案工程师.facts.yaml" \
 # 输出格式检查（章节、格式、重复、占位符）
 python3 scripts/lint_resume.py "/绝对路径/张三-AI解决方案工程师.md"
 
-# 回归 eval
+# 回归 eval（仅开发 / 发布验收，不属于正常简历生成流程）
 python3 evals/regression/run_regression.py
 ~~~
 
-两个脚本职责不重叠：`validate_claims.py` 管事实安全，`lint_resume.py` 管输出格式。
+两个脚本职责不同：`validate_claims.py` 管事实安全及 JD/ATS/Salience 的机械校验，
+`lint_resume.py` 管输出格式。
 它们构成 Resume Skill 正常执行时的 **Runtime Guard**（`SKILL.md` 步骤 7 / 10），
 正常生成简历时只跑这两层，不跑 LLM Judge。
 
