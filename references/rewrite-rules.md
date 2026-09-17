@@ -90,5 +90,8 @@
 
 1. 每个数字都能在 Fact Store 找到出处；
 2. 每个动词级别不高于 fact 的 scope；
-3. 每条内容与相邻内容不重复证明同一个能力；
+3. 每条内容有明确的 Evidence 角色；不在此阶段模拟 duplicate detector 或 similarity threshold；
 4. 每条 bullet 都能被面试官追问出具体细节。
+
+初稿先完整生成，之后才运行 deterministic validator。若 validator 报出真实问题，只做受影响
+claim / bullet 的局部修复；不要因为软 warning 重新全量 Rewrite。

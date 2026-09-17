@@ -166,3 +166,21 @@ manual_checks:
 5. 运行 `python3 evals/regression/run_regression.py` 全绿后再提交。
 
 不要再把规则堆进 `SKILL.md`。
+
+## Runtime Convergence Protocol
+
+`runtime_protocol.py` 是 Runtime 的离线协议回归，不冒充真实 LLM trace。它检查可观察、可
+计数的约束：`draft_count`、validator / repair budget、状态机回跳、WARNING 非阻断语义和预算
+耗尽后的停止行为。
+
+「Draft 阶段不得预模拟 validator」属于行为要求：正常 Runtime 没有稳定的模型 reasoning trace，
+因此不做脆弱的逐字匹配测试；规范写在 `references/runtime-protocol.md` 与 `SKILL.md`，回归套件
+只验证其可观测结果（先有完整 draft，再有 validator，repair 只能是局部且有界）。
+
+Runtime protocol cases 覆盖：
+
+- support 表述触发 scope issue 后局部修复；
+- 自然 support wording 直接结束，不因“不够强”继续升级；
+- duplicate warning 只 review 一次，可保留；
+- `ERROR=0, WARNING>0` 仍然 PASS；
+- 两轮 repair 后仍有 ERROR 时停止，不再生成新 draft。

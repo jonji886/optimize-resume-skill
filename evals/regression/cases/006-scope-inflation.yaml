@@ -54,6 +54,21 @@ variants:
         text: 协助客户项目实施与上线支持
         evidence: [fact-301]
 
+  - name: "support 使用自然的参与措辞"
+    expect: pass
+    claims:
+      - id: claim-001
+        text: 参与客户项目实施与上线支持
+        evidence: [fact-301]
+
+  - name: "support 到 core_execution 只产生非阻断 warning"
+    expect: pass
+    expect_warnings: [SCOPE_OVERREACH]
+    claims:
+      - id: claim-001
+        text: 负责客户项目实施与上线支持
+        evidence: [fact-301]
+
 manual_checks:
   - id: scope-semantic
     metric: interview_defensibility

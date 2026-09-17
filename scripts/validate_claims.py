@@ -18,6 +18,10 @@
 语义判断（是否过度包装、是否自然、是否真的回应 JD、是否值得保留）仍然由 Agent
 reasoning 负责。不要试图用正则解决语义问题。
 
+输出约定：ERROR 是 blocking issue；WARNING 是 non-blocking heuristic signal。
+默认 JSON `passed` 只表示没有 ERROR，不要求 warning 数量为 0。`--fail-on warning`
+仅供明确要求严格 lint 的调用方使用，不改变 Runtime 的默认语义。
+
 用法:
     python3 scripts/validate_claims.py ./张三-AI解决方案工程师.facts.yaml
     python3 scripts/validate_claims.py store.yaml --resume ./张三-AI解决方案工程师.md
@@ -144,6 +148,37 @@ DEFAULT_SEVERITY: Dict[str, str] = {
     "RECRUITER_SALIENCE_MISSING": "warning",
 }
 
+# 面向 Runtime 的最小动作提示。它只告诉 Agent 修复范围，不替代语义判断，
+# 也不要求 warning 必须被清零。
+ACTION_BY_CODE: Dict[str, str] = {
+    "STORE_SCHEMA_INVALID": "fix fact store structure, then validate again",
+    "STORE_DUPLICATE_ID": "fix duplicated id, then validate again",
+    "CLAIM_MISSING_FACT_REF": "attach a valid fact or remove the claim",
+    "CLAIM_REFERENCES_DENIED_FACT": "remove the claim; denied facts cannot return",
+    "CLAIM_REFERENCES_UNKNOWN_FACT": "remove the claim or confirm the fact before adding it",
+    "DENIED_TERM_REAPPEARS": "remove the denied term from this claim",
+    "UNSUPPORTED_NUMBER": "remove the number or attach supporting evidence",
+    "CLAIM_WITHOUT_EVIDENCE": "attach evidence or remove the factual assertion",
+    "SCOPE_INFLATION": "lower claim scope to the evidence scope",
+    "TRANSFERABLE_AS_DIRECT": "mark as transferable or rewrite with the original context",
+    "PROJECT_BOUNDARY_VIOLATION": "remove unsupported commercial/company framing",
+    "PROJECT_TYPE_MISMATCH": "restore the actual project type",
+    "PROJECT_COMMERCIAL_UNVERIFIED": "review commercial wording once; non-blocking",
+    "PROJECT_DELIVERY_MISMATCH": "remove unsupported delivery status",
+    "RESUME_PLACEHOLDER": "remove placeholder or internal marker",
+    "JD_CORE_REQUIREMENT_UNCOVERED": "add supported evidence locally or report the gap",
+    "SCOPE_OVERREACH": "review affected claim once; lower scope only if misleading",
+    "SCOPE_UNVERIFIABLE": "review affected claim once; confirm scope if needed",
+    "RESUME_DUPLICATE_BULLET": "review affected bullets once; merge only if materially redundant",
+    "CLAIM_DUPLICATE_TEXT": "review affected claims once; keep distinct evidence if justified",
+    "RESUME_BULLET_UNVERIFIED": "add the missing claim record or remove the numeric bullet",
+    "RESUME_CLAIM_TEXT_MISMATCH": "sync the claim text with the resume locally",
+    "JD_REQUIREMENT_NO_EVIDENCE": "do not add unsupported evidence; report the gap",
+    "ATS_KEYWORD_MISSING": "add the supported term locally once, or report the ATS risk",
+    "ATS_KEYWORD_UNSUPPORTED": "remove the unsupported keyword",
+    "RECRUITER_SALIENCE_MISSING": "move existing evidence locally once, if useful",
+}
+
 # Recruiter Salience 的“前段可见区”兜底比例：无法解析章节时使用。
 FRONT_SECTION_RATIO = 0.5
 DUPLICATE_SIMILARITY = 0.72
@@ -155,21 +190,24 @@ BULLET_MATCH_SIMILARITY = 0.5
 # --------------------------------------------------------------------------
 
 class Issue:
-    __slots__ = ("code", "severity", "message", "location")
+    __slots__ = ("code", "severity", "message", "location", "action")
 
     def __init__(self, code: str, message: str, location: str = "") -> None:
         self.code = code
         self.severity = DEFAULT_SEVERITY.get(code, "warning")
         self.message = message
         self.location = location
+        self.action = ACTION_BY_CODE.get(code, "review once; non-blocking")
 
     def to_dict(self) -> Dict[str, str]:
         return {
             "code": self.code,
+            "issue_code": self.code,
             "severity": self.severity,
             "message": self.message,
             "location": self.location,
             "metric": METRIC_BY_CODE.get(self.code, ""),
+            "action": self.action,
         }
 
     def __repr__(self) -> str:  # pragma: no cover
@@ -456,9 +494,11 @@ def check_claims(index: StoreIndex) -> List[Issue]:
 
         # 9. 重复 claim
         for other_text, other_id in seen_texts:
-            if similarity(plain, other_text) >= DUPLICATE_SIMILARITY:
+            score = similarity(plain, other_text)
+            if score >= DUPLICATE_SIMILARITY:
                 issues.append(Issue("CLAIM_DUPLICATE_TEXT",
-                                    f"与 claim {other_id} 高度重复", cid))
+                                    f"与 claim {other_id} 高度重复，similarity={score:.2f}；"
+                                    "仅 review once，non-blocking", cid))
                 break
         seen_texts.append((plain, cid))
 
@@ -538,12 +578,15 @@ def check_resume(index: StoreIndex, resume_text: str) -> List[Issue]:
     for i, left in enumerate(bullets):
         if len(left) < 12:
             continue
-        for right in bullets[i + 1:]:
+        for j, right in enumerate(bullets[i + 1:], start=i + 1):
             if len(right) < 12:
                 continue
-            if similarity(left, right) >= DUPLICATE_SIMILARITY:
+            score = similarity(left, right)
+            if score >= DUPLICATE_SIMILARITY:
                 issues.append(Issue("RESUME_DUPLICATE_BULLET",
-                                    f"重复 bullet：{left[:24]}… ≈ {right[:24]}…"))
+                                    f"bullet_{i + 1} ↔ bullet_{j + 1}，"
+                                    f"similarity={score:.2f}；仅 review once，non-blocking",
+                                    f"bullet_{i + 1},bullet_{j + 1}"))
                 break
 
     claim_plains = [strip_markup(str(c.get("text") or "")) for c in index.claims]
@@ -721,10 +764,12 @@ def format_issues(issues: Sequence[Issue]) -> str:
     lines = []
     for issue in errors:
         lines.append(f"ERROR [{issue.code}] {issue.message}"
-                     + (f"  ({issue.location})" if issue.location else ""))
+                     + (f"  ({issue.location})" if issue.location else "")
+                     + f"  action: {issue.action}")
     for issue in warnings:
         lines.append(f"WARN  [{issue.code}] {issue.message}"
-                     + (f"  ({issue.location})" if issue.location else ""))
+                     + (f"  ({issue.location})" if issue.location else "")
+                     + f"  action: {issue.action}")
     return "\n".join(lines)
 
 
@@ -771,6 +816,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             "passed": not errors,
             "errors": len(errors),
             "warnings": len(warnings),
+            "remaining_errors": len(errors),
+            "remaining_warnings": len(warnings),
             "issues": [i.to_dict() for i in issues],
             "metrics": metric_summary(issues),
         }, ensure_ascii=False, indent=2))

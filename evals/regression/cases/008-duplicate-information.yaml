@@ -81,3 +81,23 @@ variants:
         text: 面向企业客户梳理接口依赖与鉴权口径，完成 OpenAPI、Webhook 接入与联调上线
         evidence: [fact-002]
         relevance_rank: 2
+
+  - name: "合理层级重复可保留 warning"
+    expect: pass
+    expect_warnings: [RESUME_DUPLICATE_BULLET]
+    resume: |
+      # 孙七
+      手机/微信：13800000000 ｜邮箱：sunqi@example.com
+      ## 个人优势
+      - **ToB 交付**：近 5 年聚焦企业客户方案、系统集成和上线验收，累计上线应用 80+。
+      ## 工作经历
+      ### 某科技有限公司｜技术服务工程师
+      2021-07 ~ 2025-06
+      - **项目交付**：近 5 年聚焦企业客户方案、系统集成和上线验收，累计上线应用 80+。
+      ## 教育背景与认证
+      - 某大学｜计算机科学与技术｜本科｜2017-09 ~ 2021-06
+    claims:
+      - id: claim-001
+        text: 近 5 年聚焦企业客户方案、系统集成和上线验收，累计上线应用 80+
+        evidence: [fact-001]
+        relevance_rank: 1

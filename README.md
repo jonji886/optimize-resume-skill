@@ -98,18 +98,21 @@ Facts 与 Presentation 分离。首次为某个 JD 优化时，在简历同目�
 
 ## 运行模式与停止规则
 
-首次优化默认使用快速模式：`Intake → Fact Store/JD 证据矩阵 → 初稿 → 两道 Runtime Guard → 交付`。
-只有用户明确要求完整审查、深度审计或全面评估时，才加载额外语义规则并执行完整审查模式。
+首次优化默认使用 `FAST_RUNTIME`：`Intake → Fact → JD Mapping → Select → Draft → Claims →
+Validate → Targeted Repair → ATS / Salience → Lint → Deliver`。只有用户明确要求完整审查、
+深度审计或全面评估时，才使用 `STRICT / AUDIT_RUNTIME` 并加载额外语义规则。
 
 运行时遵守以下限制：
 
 - `validate_claims.py` 和 `lint_resume.py` 只调用命令，不读取源码并手工模拟；
-- 正常交付不读取或运行 `evals/`、Quality Benchmark、LLM Judge；
-- `ERROR` 只针对报错位置修复，最多 2 轮；
-- `WARNING` 不触发全量重写，只做一次针对性判断；
-- 两道门禁均无 `ERROR` 后立即交付，不继续无限优化。
+- 正常交付不读取或运行 `evals/quality/`、Quality Benchmark、LLM Judge；
+- `draft_count = 1`，validator 最多 3 次，`repair_rounds` 最多 2 轮；
+- `ERROR` 只针对报错位置修复；达到预算仍有 ERROR 就停止并报告；
+- `WARNING` 是 non-blocking heuristic signal，不触发全量重写，也不以 0 warning 为目标；
+- 没有新 evidence 不回跳到 Fact、JD 或 Content Selection。
 
-每个阶段应输出一行进度，进度只报告状态和产物，不复述逐条规则或展开内部推理。若两轮修复后仍有 `ERROR`，停止继续思考并报告阻断原因。
+每个阶段应输出一行进度，进度只报告状态和产物，不复述逐条规则或展开内部推理。完整协议见
+`references/runtime-protocol.md`。
 
 ## ATS 与 Recruiter Salience
 
@@ -134,7 +137,7 @@ Eval 要回答两个**不同**的问题，因此拆成两层：
 ~~~
 
 ~~~bash
-# 回归：确定性、离线、必须全绿（38 个 variant + 3 个 fixture + schema）
+# 回归：确定性、离线、必须全绿（现有 cases / fixtures / schema + runtime protocol）
 python3 evals/regression/run_regression.py
 python3 evals/regression/run_regression.py --category safety   # 事实安全类
 python3 evals/run_eval.py                                      # 兼容旧入口
@@ -151,6 +154,7 @@ python3 -m unittest discover -s evals/tests -t .
 
 - `evals/regression/cases/`：15 个确定性回归 case，分 `safety`（事实安全硬约束）
   与 `content_quality`（JD 覆盖、ATS、salience、重复信息）两类；
+- `evals/regression/runtime_protocol.py`：状态机、预算、warning 非阻断和终止条件的回归检查；
 - `evals/quality/benchmark/`：12 个跨岗位 Golden Case，覆盖 8 个 role family；
 - `evals/quality/judges/`：`pairwise_judge`（盲评 A/B）、`fact_guard`（语义层事实安全）、
   `evidence_judge`（JD evidence 诊断）；
@@ -186,7 +190,7 @@ python3 evals/regression/run_regression.py
 
 两个脚本职责不同：`validate_claims.py` 管事实安全及 JD/ATS/Salience 的机械校验，
 `lint_resume.py` 管输出格式。
-它们构成 Resume Skill 正常执行时的 **Runtime Guard**（`SKILL.md` 步骤 7 / 10），
+它们构成 Resume Skill 正常执行时的 **Runtime Guard**（`SKILL.md` STATE 7 / 10），
 正常生成简历时只跑这两层，不跑 LLM Judge。
 
 ## 使用
@@ -214,6 +218,7 @@ optimize-resume/
 │   ├── rewrite-rules.md          # 语言、数据、面试钩子
 │   ├── ats-rules.md              # ATS Coverage
 │   ├── recruiter-review.md       # Recruiter Salience
+│   ├── runtime-protocol.md       # Runtime 状态、预算、终止条件
 │   ├── output-format.md          # 结构与格式
 │   ├── role-mappings.md          # 岗位内容映射（按需加载）
 │   └── examples.md               # 改写示例

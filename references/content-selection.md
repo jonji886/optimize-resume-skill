@@ -52,6 +52,17 @@
 `validate_claims.py` 的 `RESUME_DUPLICATE_BULLET` / `CLAIM_DUPLICATE_TEXT` 会捕获
 措辞高度重复的情况。
 
+## 一次选择，局部复核
+
+内容筛选只做一次主要 Evidence Selection：一种核心能力原则上保留一个主要 Evidence；
+其他位置只有在提供明显新增信息时才保留。个人优势可以给结论，工作经历可以给具体过程，
+这类层级差异不自动等于重复。
+
+完成选择后直接写完整初稿，再运行 deterministic validator。不要在写每条 bullet 时两两
+比较全部 claims、估算 similarity threshold，或为了追求全局最优不断回到筛选阶段。若 validator
+真实返回 duplicate warning，只定位受影响的 bullet / claim，局部合并或压缩一次；若只是合理
+的「结论 + 证据」层级重复，可以保留并记录为 non-blocking warning。
+
 ## 五种动作
 
 | 动作 | 使用条件 |

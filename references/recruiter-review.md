@@ -28,6 +28,12 @@
 `relevance_rank` ≤ 3 的 claim 若起始位置超出前段可见区就告警。
 这只是粗筛，最终以人工判断为准。
 
+## Runtime Pass 边界
+
+Recruiter Salience 在正常 Runtime 只做一次 pass。只允许局部调整已有 evidence 的顺序、
+合并低价值 bullet，或把已有 evidence 前置；不得因一次 salience 提示进入「重写 → duplicate
+→ scope → salience」循环。该提示是 heuristic signal，不要求 warning=0。
+
 ## 前段可见区
 
 机器判定使用「个人优势 + 最近一段工作经历」；无法解析章节时退化为全文比例兜底。

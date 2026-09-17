@@ -64,6 +64,7 @@ if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
 
 import validate_claims as vc  # noqa: E402
+import runtime_protocol as rp  # noqa: E402
 
 try:
     import yaml
@@ -323,6 +324,15 @@ def run_schema_check() -> Tuple[str, List[str]]:
 
 
 # --------------------------------------------------------------------------
+# runtime protocol suite
+# --------------------------------------------------------------------------
+
+def run_runtime_protocol() -> List[rp.ProtocolResult]:
+    """检查 Runtime 的状态机、预算和 WARNING 非阻断语义。"""
+    return rp.run_builtin_runtime_cases()
+
+
+# --------------------------------------------------------------------------
 # judge 扩展接口
 # --------------------------------------------------------------------------
 
@@ -442,6 +452,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     cases: List[Dict[str, Any]] = []
     variant_results: List[VariantResult] = []
     fixture_results: List[FixtureResult] = []
+    runtime_results: List[rp.ProtocolResult] = []
     schema_status, schema_messages = "skipped", []
     judge_outcomes: List[Dict[str, str]] = []
     manual_checks: List[Dict[str, str]] = []
@@ -454,9 +465,12 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         fixture_results = run_fixtures(args.case)
     if args.suite in ("all", "schema"):
         schema_status, schema_messages = run_schema_check()
+    if args.suite in ("all", "cases"):
+        runtime_results = run_runtime_protocol()
 
     failed_cases = [r for r in variant_results if not r.passed]
     failed_fixtures = [r for r in fixture_results if not r.passed]
+    failed_runtime = [r for r in runtime_results if not r.passed]
     failed_judge = [o for o in judge_outcomes if o["status"] == "failed"]
 
     if args.json:
@@ -474,13 +488,21 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                           "errors": r.errors, "warnings": r.warnings,
                           "lint_errors": r.lint_errors, "lint_warnings": r.lint_warnings,
                           "problems": r.problems} for r in fixture_results],
+            "runtime_protocol": {
+                "total": len(runtime_results),
+                "passed": len(runtime_results) - len(failed_runtime),
+                "failed_cases": [
+                    {"case": r.case_id, "problems": r.problems}
+                    for r in failed_runtime
+                ],
+            },
             "schema": {"status": schema_status, "messages": schema_messages},
             "metrics": [{"metric": m, "passed": p, "total": t}
                         for m, p, t in metric_table(variant_results)],
             "judge": judge_outcomes,
             "manual": manual_checks,
         }, ensure_ascii=False, indent=2))
-        return 1 if (failed_cases or failed_fixtures or failed_judge
+        return 1 if (failed_cases or failed_fixtures or failed_runtime or failed_judge
                      or schema_status == "failed") else 0
 
     print("=" * 68)
@@ -542,6 +564,13 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 metric = f" ({check['metric']})" if check["metric"] else ""
                 print(f"        {check['case']} / {check['check']}{metric}")
 
+        print("\n[runtime protocol]")
+        for result in runtime_results:
+            mark = color("PASS", GREEN) if result.passed else color("FAIL", RED)
+            print(f"  {mark} {result.case_id}")
+            for problem in result.problems:
+                print(f"        {problem}")
+
     if args.suite in ("all", "fixtures"):
         print("\n[fixtures]  (端到端 smoke test)")
         if not fixture_results:
@@ -563,10 +592,12 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     print("\n" + "-" * 68)
     print(f"summary: cases {len(variant_results) - len(failed_cases)} passed, "
           f"{len(failed_cases)} failed | "
+          f"runtime {len(runtime_results) - len(failed_runtime)} passed, "
+          f"{len(failed_runtime)} failed | "
           f"fixtures {len(fixture_results) - len(failed_fixtures)} passed, "
           f"{len(failed_fixtures)} failed | "
           f"schema {schema_status}")
-    return 1 if (failed_cases or failed_fixtures or failed_judge
+    return 1 if (failed_cases or failed_fixtures or failed_runtime or failed_judge
                  or schema_status == "failed") else 0
 
 

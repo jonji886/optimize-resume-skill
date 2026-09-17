@@ -19,6 +19,29 @@
 - 最终简历不展示 scope 标签。
 - 「负责」「参与」「优化」「推动」并非绝对禁用；只有缺少具体对象、动作和结果时才替换。
 
+## Scope Freeze（单一事实源）
+
+`fact.scope` 在 Fact Extraction / Fact Store 阶段根据原始简历、用户补充或用户纠正确定。
+一旦确定，后续 Content Selection、Draft、Claims 和 Rewrite 默认视为 immutable：
+
+- `claim_scope <= fact_scope` 是硬约束；不能为了更贴合 JD 把 `support` 升成
+  `core_execution`，也不能把 `core_execution` 升成 `lead` / `owner`；
+- 改写阶段只选择事实安全且自然的表达，不重新开一轮 scope 讨论，不把「更强措辞」当成质量目标；
+- 只有新的明确原始证据、Fact Store 与原始证据冲突，或用户明确纠正该事实时，才允许回到事实阶段重新评估。
+
+下面的 scope → language 只是写作 guidance，不是必须逐字套用的词表：
+
+| fact scope | 可优先考虑的表达 |
+|---|---|
+| `support` | 支持、协助、参与、配合、为……提供技术支持 |
+| `core_execution` | 负责、承担、实现、开发、集成、落地 |
+| `lead` | 主导、牵头、推动跨团队、组织 |
+| `owner` | 独立负责、独立设计、独立完成、端到端负责 |
+
+「参与」「推动」「负责」等词需要结合对象、动作和结果理解。validator 的词语检测只是
+确定性告警信号，不是让模型在生成阶段穷举动词或人工模拟检测器的理由。若事实安全且表达自然，
+不要为了消除 `SCOPE_OVERREACH` warning 继续升级或反复改写。
+
 ## 升级判定
 
 | evidence scope | claim 动词 | 结果 |
@@ -59,3 +82,10 @@
 - 正确：`具备复杂 OpenAPI 接入与系统集成经验，可迁移至支付 API 场景`
 
 对应的 claim 需显式声明 `claim_type: transferable`。
+
+## Validator 反馈边界
+
+出现 scope issue 时只定位受影响的 claim，按实际 validator 输出做一次局部判断。不要在写
+初稿前预测 `detect_scope` 的正则结果；不要因 warning 重新做 Fact Extraction、JD 解析或
+全量 Rewrite。`SCOPE_INFLATION` 等 ERROR 必须修复，`SCOPE_OVERREACH` / `SCOPE_UNVERIFIABLE`
+等 WARNING 在没有明显事实误导时可以保留。

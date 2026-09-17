@@ -23,6 +23,15 @@
 
 两者都是 **warning**：它们影响可检索性，不属于事实安全违规。
 
+## Runtime Pass 边界
+
+ATS 在正常 Runtime 只做一次 pass。只有「JD 核心 required term 完全缺失，但已有真实
+Evidence 支持」时，才允许在相关 bullet 做一次局部补词；不得重写整份简历、批量复制 JD
+措辞或反复跑 keyword optimization。事实不支持的词永远不写。
+
+`ATS_KEYWORD_MISSING` / `ATS_KEYWORD_UNSUPPORTED` 是 heuristic signal，不是把 warning
+清零的目标。自然表达与事实安全优先于 warning 数量。
+
 ## 关键词复现规则
 
 - 优先复现真实的技术名词、产品名、行业词和职责名词；

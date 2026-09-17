@@ -36,22 +36,33 @@ description: 基于目标 JD 做证据驱动的简历优化：建立 Fact Store�
 
 完整规则与禁止清单见 `references/fact-boundaries.md`。
 
-## Runtime 执行协议
+## Execution Budget & Termination Rules
 
-默认采用「快速模式」完成首次优化；只有用户明确要求“完整审查 / 深度审计 / 全面评估”时，才采用「完整审查模式」。两种模式都必须执行事实安全门禁，不得为了提速放宽事实约束。
+默认使用 `FAST_RUNTIME`：日常 JD 定向优化的每个主要阶段只执行一次；只有用户明确要求
+严格事实审核、Skill 调试、Benchmark / Regression 或 release 验收时才使用
+`STRICT / AUDIT_RUNTIME`。严格模式可以增加复核，但不取消预算。
 
-执行时遵守以下收敛规则：
+默认预算为：`draft_count = 1`、`validator_runs <= 3`、`repair_rounds <= 2`、ATS pass 一次、
+Recruiter Salience pass 一次、lint 一次。完整状态、指标和停止条件见
+[`references/runtime-protocol.md`](references/runtime-protocol.md)。
 
-1. 按阶段单次处理，不在同一阶段反复重建 Fact Store、JD 分析或内容筛选结果；
-2. 每个阶段完成后只输出一行进度：`[阶段 x/5] 名称：完成`；进度只报告状态和产物，不复述逐条规则或展开内部推理；
-3. 正常流程禁止读取或运行 `evals/`、Quality Benchmark、LLM Judge；
-4. `validate_claims.py` 与 `lint_resume.py` 只调用命令，不读取源码并手工模拟检查；工具不可用时如实报告，不用长篇推理替代执行；
-5. 校验发现 `ERROR` 后，只针对报错位置修复，最多进行 2 轮修复；达到上限仍有 `ERROR` 时停止并报告阻断原因；
-6. `WARNING` 只做一次针对性判断，不触发全量重写；真实问题在当前修复轮次处理，误报集中记录；
-7. 两道门禁均无 `ERROR` 后立即交付，不继续进行无界的“再优化”或重复审计。
+必须遵守：
 
-快速模式的最小阶段为：`Intake → Fact Store/JD 证据矩阵 → 初稿 → 两道 Runtime Guard → 交付`。
-完整审查模式在此基础上增加内容筛选、角色映射、ATS 语义自然度、Recruiter Salience 语义审查和面试钩子检查，但仍遵守上述两轮修复上限。
+1. `Fact Store → JD Evidence Mapping → Content Selection → Draft → Claims → Deterministic
+   Validation → Targeted Repair → ATS / Salience → Lint → Deliver`；没有新 evidence 不得回跳
+   到事实提取、JD 解析或内容筛选；
+2. Draft 先完整生成，再实际运行 validator。不得在 Draft / Rewrite 阶段人工模拟正则、scope
+   detector、duplicate threshold 或 ATS detector；validator 才是检测反馈源；
+3. `ERROR` 是 blocking，必须局部修复并重新验证；两轮后仍有 ERROR 就停止自动修改并报告
+   `unresolved ERROR`；
+4. `WARNING` 是 non-blocking heuristic signal，不是 reward function，也不是 Runtime Success
+   Criterion；绝不以 `0 WARNING` 为目标。只修复明显事实误导、核心 JD Evidence、显著重复或
+   Recruiter 理解受损的问题，其余 warning 可以保留并报告；
+5. Targeted Repair 只能遵循 `validator issue → locate affected claim/bullet → local patch →
+   validator`，不得触发全量 rewrite；同一 issue 连续两轮仍在时停止继续改写；
+6. 正常 Runtime 不读取或运行 `evals/quality/`、Quality Benchmark 或 LLM Judge；
+7. 每个阶段最多输出一行进度，不复述内部推理。`runtime_pass` 由 remaining ERROR 和 lint ERROR
+   决定，WARNING 可以大于 0。
 
 ## 资源与加载时机
 
@@ -60,6 +71,7 @@ description: 基于目标 JD 做证据驱动的简历优化：建立 Fact Store�
 | 资源 | 何时读取 |
 |---|---|
 | `references/fact-boundaries.md` | 建立或更新 Fact Store、判断事实能否写入、处理未知信息 |
+| `references/runtime-protocol.md` | 需要确认 Runtime 状态、预算、修复边界或终止条件时 |
 | `references/jd-analysis.md` | 拆解 JD、建立证据映射、做职业风险扫描 |
 | `references/scope-rules.md` | 选择 bullet 动词、判断参与层级 |
 | `references/content-selection.md` | 决定保留 / 前置 / 压缩 / 合并 / 删除 |
@@ -70,8 +82,8 @@ description: 基于目标 JD 做证据驱动的简历优化：建立 Fact Store�
 | `references/role-mappings.md` | 判断岗位相关性和项目取舍时 |
 | `references/examples.md` | 需要改写示例时 |
 | `schemas/facts.schema.json` | 需要确认 Fact Store 字段时 |
-| `scripts/validate_claims.py` | 步骤 7，只调用命令；事实安全、JD/ATS/Salience 的机械校验 |
-| `scripts/lint_resume.py` | 步骤 10，只调用命令；输出格式校验 |
+| `scripts/validate_claims.py` | STATE 7，只调用命令；事实安全、JD/ATS/Salience 的机械校验 |
+| `scripts/lint_resume.py` | STATE 10，只调用命令；输出格式校验 |
 
 角色映射按需加载：先识别目标 Role，再读取 `role-mappings.md` 中对应段落，
 不要把全部岗位规则读进上下文。
@@ -86,12 +98,13 @@ description: 基于目标 JD 做证据驱动的简历优化：建立 Fact Store�
 
 ## 执行流程
 
-### 1. Intake
+### STATE 1 — Intake
 
 确认目标岗位、输入文件、已有事实状态。判断工作模式（见下）。
-只处理 Critical Missing Information；其余缺口留到步骤 4 之后按 claim 级别处理。
+只处理 Critical Missing Information；其余缺口留到 JD Evidence Mapping / Claims 阶段按 claim
+级别处理。
 
-### 2. 建立 / 更新 Fact Store
+### STATE 2 — Fact Extraction / Fact Store
 
 读取 `references/fact-boundaries.md`，生成 sidecar 文件：
 
@@ -106,7 +119,7 @@ description: 基于目标 JD 做证据驱动的简历优化：建立 Fact Store�
 - 项目类 fact 所在 project 必须声明 `type` 与 `commercial_delivery`；
 - 迭代修改时在原有 Fact Store 上增量更新，不要重建后丢掉已否认事实。
 
-### 3. 拆解 JD
+### STATE 3 — JD Requirement Mapping
 
 读取 `references/jd-analysis.md`，把结果写入 Fact Store 的 `jd` 段：
 
@@ -114,27 +127,25 @@ description: 基于目标 JD 做证据驱动的简历优化：建立 Fact Store�
 - `ats_keywords`：需要被检索的真实技术 / 产品 / 职责名词；
 - 职级、行业、必备项与加分项。
 
-同时完成职业风险扫描，结论用于最终说明，不写进简历。
+同时完成职业风险扫描，结论用于最终说明，不写进简历；把每条核心要求映射到直接匹配、
+可迁移或无证据，不为无证据要求新增事实。
 
-### 4. 映射 JD → Evidence
+### STATE 4 — Content Selection
 
-逐条为 JD 核心要求寻找证据，标记为直接匹配 / 可迁移 / 无证据：
-
-- 直接匹配：回写到对应 fact 的 `jd_requirements`；
-- 可迁移：保留 `transferable` 状态，并准备迁移表达；
-- 无证据：记为缺口，**不得为此新增事实**。
-
-### 5. 内容筛选
-
-读取 `references/content-selection.md`，对每条内容产出动作：
+读取 `references/content-selection.md`，一次性为每条内容产出动作：
 `KEEP_AND_PRIORITIZE` / `KEEP` / `COMPRESS` / `MERGE` / `REMOVE`。
 
-重点检查 Information Uniqueness：同一能力不要被个人优势、工作经历、项目经历重复证明。
+重点只做一次 Evidence Selection；duplicate 检测交给 validator，不在写每条 bullet 时模拟。
 
-### 6. 改写简历
+### STATE 5 — Draft
 
 读取 `references/scope-rules.md` 与 `references/rewrite-rules.md`，按
 `references/output-format.md` 的结构写入目标文件。
+
+只遵守已确定的 Fact / JD Evidence Map；Scope 在 Fact Extraction 阶段确定后默认冻结。
+先生成完整 Resume，不为了预测 validator 而反复换词。
+
+### STATE 6 — Claims
 
 每条事实性 bullet 同步登记到 Fact Store 的 `claims`：
 
@@ -142,45 +153,46 @@ description: 基于目标 JD 做证据驱动的简历优化：建立 Fact Store�
 - `claim_type`：`direct` 或 `transferable`；
 - `relevance_rank`：对目标 JD 的重要性，1 最高。
 
-### 7. 校验 Claims（事实安全门禁）
+### STATE 7 — Deterministic Validation
 
 ~~~bash
 python3 scripts/validate_claims.py "张三-{岗位名称}.facts.yaml" \
   --resume "张三-{岗位名称}.md"
 ~~~
 
-- `ERROR` 必须全部修复后重新运行，不得交付；
-- `WARNING` 只做针对性判断：真实问题在当前修复轮次处理，误报在最终说明中注明；不得因 WARNING 重新执行整套流程。
+- `ERROR` 必须局部修复后重新运行；最多 2 轮 repair；
+- `WARNING` 只做一次针对性判断，不得因 warning 重启整套流程，也不要求 warning=0。
 
 脚本只做 deterministic 检查。只调用脚本，不读取源码并手工模拟其内部实现；语义层面的
 「是否过度包装、是否自然、是否值得保留」按执行模式处理。校验脚本已覆盖 JD 核心要求、
 ATS 关键词和 Recruiter Salience 的机械检查。
 
-### 8. ATS Coverage 检查
+### STATE 8 — Targeted Repair
 
-不要重复执行脚本已经完成的关键词存在性和事实支持检查。快速模式只在脚本报告相关
-WARNING，或需要判断关键词是否自然时做一次语义复核；完整审查模式读取
-`references/ats-rules.md`，检查关键词自然度和上下文准确性。
+只处理真实 validator 输出中 blocking ERROR 和少量高价值 WARNING。每轮只定位受影响的
+claim / bullet 并局部修改；不全量 Rewrite。两轮后仍有 ERROR 时停止并报告 unresolved ERROR。
 
-### 9. Recruiter Salience 检查
+### STATE 9 — ATS Coverage / Recruiter Salience
 
-不要重复执行脚本已经完成的前段位置检查。快速模式只针对脚本 WARNING 或 JD 前 3
-个核心要求做一次语义复核；完整审查模式读取 `references/recruiter-review.md`，确认核心
-evidence 出现在前段可见区（个人优势 + 最近一段相关经历），个人优势正面回应 JD。
+ATS 与 Salience 各只做一次。ATS 仅在已有真实 evidence 时局部补充自然关键词；Salience
+仅局部前置、排序或合并已有 evidence。两者都不得触发 scope / duplicate / 全局重写循环。
+如修改 claim 文本，必须在剩余 validator 预算内复验；预算用尽则不改事实措辞，只报告风险。
+
+快速模式只在 validator 报告相关 warning 时读取对应参考；完整审查模式再读取
+`references/ats-rules.md` 与 `references/recruiter-review.md` 做一次语义复核。
 
 ATS 与 Salience 是两次独立检查：关键词存在但位置过深时，
 ATS 通过、Salience 不通过，必须分别报告。
 
-### 10. 输出格式检查
+### STATE 10 — Lint
 
 ~~~bash
 python3 scripts/lint_resume.py "/绝对路径/张三-{岗位名称}.md"
 ~~~
 
-修复全部 `ERROR`；`WARN` 按输出规范做一次针对性判断。若需要修复，计入 Runtime 执行协议
-中的 2 轮修复，不得单独开启新的全量审计。
+修复 `ERROR`；`WARN` 只做一次判断，修复计入同一 Runtime 的 2 轮预算，不得开启新的全量审计。
 
-### 11. 交付
+### STATE 11 — Deliver
 
 清理临时文件与内部标记，输出目标文件的可点击路径与说明。
 
@@ -191,9 +203,9 @@ python3 scripts/lint_resume.py "/绝对路径/张三-{岗位名称}.md"
 | 模式 | 触发 | 行为 |
 |---|---|---|
 | A 仅诊断 | 用户要求分析、评估、指出问题 | 只输出诊断，不改文件 |
-| B 快速首次优化（默认） | 首次为某 JD 生成简历，未明确要求深度审查 | 执行最小阶段；缺口按 claim 级别处理；只做一次语义抽查 |
-| C 完整审查 | 用户明确要求完整审查、深度审计或全面评估 | 执行 1–11，并加载所需语义规则；仍受两轮修复上限约束 |
-| D 迭代修改 | 要求精简、删除、调整某模块或换格式 | 直接修改目标文件，同步更新 Fact Store 的 claims；检查相邻模块一致性 |
+| B `FAST_RUNTIME`（默认） | 首次为某 JD 生成简历，未明确要求深度审查 | 依次执行有界状态；每阶段一次，warning 非阻断，最多 2 轮局部修复 |
+| C `STRICT / AUDIT_RUNTIME` | 用户明确要求完整审查、深度审计或全面评估 | 执行 STATE 1–11，并加载所需语义规则；仍受同一预算约束 |
+| D 迭代修改 | 要求精简、删除、调整某模块或换格式 | 直接做局部修改，同步更新 claims；仍执行对应 Runtime Guard，不重开无关阶段 |
 
 信息是否齐全不是独立模式：已有 Fact Store 或用户已确认事实时，在 B/C 中跳过已完成的
 Intake 和事实提取，不重复建立相同事实。
@@ -240,8 +252,8 @@ denied         → 禁止生成，且不得在后续版本重新引入
 正常优化简历时，只执行本文件描述的两道 deterministic 门禁：
 
 ~~~text
-步骤 7   validate_claims.py   事实安全
-步骤 10  lint_resume.py       输出格式
+STATE 7   validate_claims.py   事实安全
+STATE 10  lint_resume.py       输出格式
 ~~~
 
 这两者构成 Runtime Guard：轻量、确定性、可自动运行。**不要**在正常生成流程中调用
