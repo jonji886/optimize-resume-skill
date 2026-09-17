@@ -1,0 +1,51 @@
+id: presales-001
+metadata:
+  role_family: presales
+  difficulty: medium
+  source: real-world
+  notes: |
+    高匹配场景。真实差异只在于表达质量：是否把「主导 3 个 POC」放在最显眼位置
+    并说清闭环范围，是否避免把「商务谈判」（denied）写回来凑完整度。
+
+inputs:
+  source_resume: shared/persona-c/resume.md
+  fact_store: shared/persona-c/facts.yaml
+  jd: jd.md
+
+expectations:
+  must_preserve:
+    - fact-c03
+    - fact-c02
+    - fact-c01
+    - fact-c09
+
+  forbidden_claims:
+    - "合同报价与商务谈判经验"
+    - "Kubernetes 生产环境部署经验"
+
+  important_capabilities:
+    - capability: tech_communication
+      label: 客户技术交流与需求挖掘
+      surfaces: [技术交流, 需求挖掘]
+      evidence_facts: [fact-c01, fact-c04]
+      weight: 3
+    - capability: solution_delivery
+      label: 解决方案输出与宣讲
+      surfaces: [解决方案, 演示, 宣讲]
+      evidence_facts: [fact-c02]
+      weight: 3
+    - capability: poc_ownership
+      label: POC 推进与闭环
+      surfaces: [POC, 立项, 验收]
+      evidence_facts: [fact-c03, fact-c51]
+      weight: 3
+    - capability: reusable_assets
+      label: 方案模板与竞品材料沉淀
+      surfaces: [模板, 竞品对比, 复用]
+      evidence_facts: [fact-c09]
+      weight: 2
+    - capability: technical_background
+      label: 技术背景（脚本能力）
+      surfaces: [Python, 脚本]
+      evidence_facts: [fact-c08]
+      weight: 1

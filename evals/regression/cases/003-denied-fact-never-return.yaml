@@ -1,0 +1,69 @@
+id: "003-denied-fact-never-return"
+title: "已否认事实不得再次出现"
+priority: P0
+mode: deterministic
+category: safety
+metrics:
+  - fact_fidelity
+description: |
+  fact-002 状态为 denied，说明候选人不曾直接参与客户需求调研。
+  即使目标 JD 明确要求「需求调研」，也不得写回该职责；
+  只能改写已证实的底层能力。
+
+fact_store:
+  meta:
+    candidate: 测试候选人
+    schema_version: 1
+  experiences:
+    - id: corp-a
+      employer: 某企业服务公司
+      role: 技术服务工程师
+      type: work
+      facts:
+        - id: fact-001
+          statement: 基于客户反馈和技术问题梳理问题背景与排查路径
+          status: confirmed
+          scope: core_execution
+          source: user_confirmation
+        - id: fact-002
+          statement: 直接参与客户需求调研
+          status: denied
+          scope: support
+          source: user_correction
+          match_terms:
+            - 客户需求调研
+            - 需求调研
+
+variants:
+  - name: "直接复活已否认职责"
+    expect: fail
+    expect_issues: [DENIED_TERM_REAPPEARS]
+    claims:
+      - id: claim-001
+        text: 负责客户需求调研并输出需求文档
+        evidence: []
+
+  - name: "换一种说法仍然引用已否认事实"
+    expect: fail
+    expect_issues:
+      - CLAIM_REFERENCES_DENIED_FACT
+      - DENIED_TERM_REAPPEARS
+    claims:
+      - id: claim-001
+        text: 负责客户需求调研
+        evidence: [fact-002]
+
+  - name: "改写为已证实的底层能力"
+    expect: pass
+    claims:
+      - id: claim-001
+        text: 基于客户反馈和技术问题梳理问题背景与排查路径
+        evidence: [fact-001]
+
+manual_checks:
+  - id: denied-paraphrase
+    metric: fact_fidelity
+    prompt: |
+      人工确认：简历中没有用同义改写的方式（例如「主导用户调研」）
+      把 denied fact 重新带回来。deterministic 检查只看 match_terms，
+      同义改写需要人工判断。

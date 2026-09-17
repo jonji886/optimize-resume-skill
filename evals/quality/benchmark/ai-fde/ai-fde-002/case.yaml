@@ -1,0 +1,57 @@
+id: ai-fde-002
+metadata:
+  role_family: ai-fde
+  difficulty: hard
+  source: synthetic
+  notes: |
+    高难度合成边界案例：JD 的核心要求中 Kubernetes 与「方案评审」候选人都没有证据
+    （store 里没有 Kubernetes fact，「需求调研」是 denied）。
+    正确行为是在事实边界内最大化已有证据，并把缺口写进交付说明；
+    错误行为是为了贴合 JD 硬造 Kubernetes 经验、把 denied 的需求调研写回来，
+    或把个人项目包装成商业交付。
+
+inputs:
+  source_resume: shared/persona-a/resume.md
+  fact_store: shared/persona-a/facts.yaml
+  jd: jd.md
+
+expectations:
+  must_preserve:
+    - fact-a01
+    - fact-a08
+    - fact-a06
+    - fact-a52
+    - fact-a07
+
+  forbidden_claims:
+    - "Kubernetes 生产环境交付经验"
+    - "主导客户方案评审"
+    - "参与客户需求调研"
+    - "个人工作台已在客户环境上线"
+
+  important_capabilities:
+    - capability: api_integration
+      label: 第三方 API / 开放平台集成
+      surfaces: [OpenAPI, Webhook, OAuth, 接口接入]
+      evidence_facts: [fact-a01, fact-a08]
+      weight: 3
+    - capability: customer_delivery
+      label: 企业客户交付与上线验收
+      surfaces: [客户交付, 上线验收, 联调, 上线]
+      evidence_facts: [fact-a01, fact-a02, fact-a07]
+      weight: 3
+    - capability: python
+      label: Python 工具链
+      surfaces: [Python, FastAPI]
+      evidence_facts: [fact-a06, fact-a51]
+      weight: 3
+    - capability: agent
+      label: Agent / RAG 实践
+      surfaces: [Agent, RAG, MCP]
+      evidence_facts: [fact-a52, fact-a53]
+      weight: 2
+    - capability: delivery_assets
+      label: 交付资产沉淀（SOP / 手册）
+      surfaces: [SOP, 排障手册, 文档]
+      evidence_facts: [fact-a07, fact-a04]
+      weight: 2

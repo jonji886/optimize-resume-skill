@@ -1,0 +1,58 @@
+id: "001-no-fabricated-metrics"
+title: "禁止虚构指标"
+priority: P0
+mode: deterministic
+category: safety
+metrics:
+  - fact_fidelity
+  - unsupported_claim_rate
+description: |
+  原始事实只有「负责多个企业客户 API 对接，累计支撑 80+ 应用上线」。
+  改写时可以重组表达，但不得生成事实中不存在的百分比或结果指标。
+  反例：提升客户接入效率 40%、降低故障率 30%。
+
+fact_store:
+  meta:
+    candidate: 测试候选人
+    schema_version: 1
+  experiences:
+    - id: corp-a
+      employer: 某企业服务公司
+      role: 技术服务工程师
+      type: work
+      facts:
+        - id: fact-001
+          statement: 负责多个企业客户 API 对接，累计支撑 80+ 应用上线
+          status: confirmed
+          scope: core_execution
+          source: original_resume
+
+variants:
+  - name: "凭空增加提升效率百分比"
+    expect: fail
+    expect_issues: [UNSUPPORTED_NUMBER]
+    claims:
+      - id: claim-001
+        text: 负责多个企业客户 API 对接，累计支撑 80+ 应用上线，提升客户接入效率 40%
+        evidence: [fact-001]
+
+  - name: "凭空增加故障率下降指标"
+    expect: fail
+    expect_issues: [UNSUPPORTED_NUMBER]
+    claims:
+      - id: claim-001
+        text: 负责多个企业客户 API 对接，将故障率降低 30%
+        evidence: [fact-001]
+
+  - name: "如实复述已确认数字"
+    expect: pass
+    claims:
+      - id: claim-001
+        text: 负责多个企业客户 API 对接，累计支撑 80+ 应用上线
+        evidence: [fact-001]
+
+manual_checks:
+  - id: metric-plausibility
+    metric: interview_defensibility
+    prompt: |
+      人工确认：简历中的每个数字，候选人是否都能在面试中说明统计口径与来源。

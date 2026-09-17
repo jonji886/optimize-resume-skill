@@ -1,0 +1,85 @@
+id: "013-resume-placeholder"
+title: "最终简历不得保留占位符与内部标记"
+priority: P0
+mode: deterministic
+category: safety
+metrics:
+  - output_hygiene
+description: |
+  最终交付的简历中不得出现 TODO、待补充、HTML 注释或其他内部标记。
+  这些内容属于工作过程产物，必须在校验前清理。
+
+fact_store:
+  meta:
+    candidate: 测试候选人
+    schema_version: 1
+  experiences:
+    - id: corp-a
+      employer: 某科技有限公司
+      role: 技术服务工程师
+      type: work
+      facts:
+        - id: fact-001
+          statement: 负责多个企业客户 API 接入与上线
+          status: confirmed
+          scope: core_execution
+          source: original_resume
+
+variants:
+  - name: "残留 TODO 待补充"
+    expect: fail
+    expect_issues: [RESUME_PLACEHOLDER]
+    resume: |
+      # 冯十一
+      手机/微信：13800000000 ｜邮箱：fengshiyi@example.com
+      ## 个人优势
+      - **API 集成**：负责多个企业客户 API 接入与上线，TODO 补充优化比例。
+      ## 工作经历
+      ### 某科技有限公司｜技术服务工程师
+      2021-07 ~ 2025-06
+      - **接口接入**：负责多个企业客户 API 接入与上线。
+      ## 教育背景与认证
+      - 某大学｜计算机科学与技术｜本科｜2017-09 ~ 2021-06
+    claims:
+      - id: claim-001
+        text: 负责多个企业客户 API 接入与上线，TODO 补充优化比例
+        evidence: [fact-001]
+
+  - name: "残留内部 scope 注释"
+    expect: fail
+    expect_issues: [RESUME_PLACEHOLDER]
+    resume: |
+      # 冯十一
+      手机/微信：13800000000 ｜邮箱：fengshiyi@example.com
+      ## 个人优势
+      - **API 集成**：负责多个企业客户 API 接入与上线。
+      ## 工作经历
+      ### 某科技有限公司｜技术服务工程师
+      2021-07 ~ 2025-06
+      - **接口接入**：负责多个企业客户 API 接入与上线。<!-- scope: 待确认 -->
+      ## 教育背景与认证
+      - 某大学｜计算机科学与技术｜本科｜2017-09 ~ 2021-06
+    claims:
+      - id: claim-001
+        text: 负责多个企业客户 API 接入与上线
+        evidence: [fact-001]
+
+  - name: "干净交付"
+    expect: pass
+    forbid_issues: [RESUME_PLACEHOLDER]
+    resume: |
+      # 冯十一
+      手机/微信：13800000000 ｜邮箱：fengshiyi@example.com
+      ## 个人优势
+      - **API 集成**：负责多个企业客户 API 接入与上线。
+      ## 工作经历
+      ### 某科技有限公司｜技术服务工程师
+      2021-07 ~ 2025-06
+      - **接口接入**：面向企业客户完成 API 接入、联调与上线支持。
+      ## 教育背景与认证
+      - 某大学｜计算机科学与技术｜本科｜2017-09 ~ 2021-06
+    claims:
+      - id: claim-001
+        text: 负责多个企业客户 API 接入与上线
+        evidence: [fact-001]
+        relevance_rank: 1

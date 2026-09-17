@@ -1,0 +1,59 @@
+id: technical-consultant-001
+metadata:
+  role_family: technical-consultant
+  difficulty: medium
+  source: real-world-derived
+  notes: |
+    实施工程师 → 技术顾问：匹配点集中在「落地推进 + 约束梳理 + 知识转移」，
+    而不是「写脚本」。好的版本会把顾问属性（约束处理、客户可读材料、双向翻译）
+    显式表达出来，而不是只罗列部署动作。
+
+inputs:
+  source_resume: shared/persona-e/resume.md
+  fact_store: shared/persona-e/facts.yaml
+  jd: jd.md
+
+expectations:
+  must_preserve:
+    - fact-e01
+    - fact-e08
+    - fact-e02
+    - fact-e03
+    - fact-e06
+
+  forbidden_claims:
+    - "主导客户 IT 架构规划"
+    - "数据库调优与高可用架构设计经验"
+    - "负责客户合规审计"
+
+  important_capabilities:
+    - capability: rollout_planning
+      label: 上线路径设计与落地推进
+      surfaces: [上线割接, 部署, 环境初始化, 落地]
+      evidence_facts: [fact-e01]
+      weight: 3
+    - capability: constraint_handling
+      label: 客户约束梳理与前置条件
+      surfaces: [网络, 权限, 前置条件, 约束]
+      evidence_facts: [fact-e08]
+      weight: 3
+    - capability: knowledge_transfer
+      label: 知识转移与客户培训
+      surfaces: [培训, 知识转移]
+      evidence_facts: [fact-e02]
+      weight: 3
+    - capability: documentation
+      label: 实施与运维材料输出
+      surfaces: [部署手册, 故障处理, 文档]
+      evidence_facts: [fact-e03]
+      weight: 2
+    - capability: post_launch_support
+      label: 上线后问题跟踪与版本升级
+      surfaces: [问题跟踪, 版本升级, 客户环境]
+      evidence_facts: [fact-e06, fact-e09]
+      weight: 2
+    - capability: automation_script
+      label: Shell / Python 脚本能力
+      surfaces: [Shell, Python, 脚本]
+      evidence_facts: [fact-e04]
+      weight: 1

@@ -110,20 +110,49 @@ Facts 与 Presentation 分离。首次为某个 JD 优化时，在简历同目�
 
 ## Eval 系统
 
-任何规则修改都应该用固定 case 判断变好还是变差。
+Eval 要回答两个**不同**的问题，因此拆成两层：
 
-~~~bash
-python3 evals/run_eval.py                 # cases + fixtures + schema
-python3 evals/run_eval.py --suite cases   # 15 个高风险回归场景
-python3 evals/run_eval.py --json
+~~~text
+1. Skill 有没有做错？                    → Regression Eval（守下限）
+2. 都没做错时，新版本有没有做得更好？     → Quality Benchmark（判上限）
 ~~~
 
-- `evals/cases/`：15 个高价值回归 case（虚构指标、项目边界、denied 复活、
-  可迁移越界、scope 升级、JD 覆盖、重复信息、ATS、招聘可见性、unknown gate 等）；
-- `examples/`：3 个端到端 smoke 场景；
+~~~bash
+# 回归：确定性、离线、必须全绿（38 个 variant + 3 个 fixture + schema）
+python3 evals/regression/run_regression.py
+python3 evals/regression/run_regression.py --category safety   # 事实安全类
+python3 evals/run_eval.py                                      # 兼容旧入口
+
+# 质量：版本对比（离线自检不需要 API Key）
+python3 evals/quality/run_quality.py --dry-run
+python3 evals/quality/run_quality.py --mock --baseline v0.6 --candidate v0.7
+python3 evals/quality/run_quality.py --baseline v0.6 --candidate v0.7 \
+  --runs-dir evals/quality/runs
+
+# Harness 自身的测试
+python3 -m unittest discover -s evals/tests -t .
+~~~
+
+- `evals/regression/cases/`：15 个确定性回归 case，分 `safety`（事实安全硬约束）
+  与 `content_quality`（JD 覆盖、ATS、salience、重复信息）两类；
+- `evals/quality/benchmark/`：12 个跨岗位 Golden Case，覆盖 8 个 role family；
+- `evals/quality/judges/`：`pairwise_judge`（盲评 A/B）、`fact_guard`（语义层事实安全）、
+  `evidence_judge`（JD evidence 诊断）；
 - `evals/rubric.md`：指标定义，标注 deterministic / judge / manual；
-- judge 扩展接口：设置 `EVAL_JUDGE_CMD` 接入外部判定器；未设置时如实报告
-  `SKIP`，不伪造评分。
+- judge 扩展接口：回归用 `EVAL_JUDGE_CMD`，质量为 `QUALITY_JUDGE_PROVIDER`；
+  未设置时如实报告 `SKIP` / 使用 mock，不伪造评分。
+
+三层职责与边界（Runtime Guard / Regression / Quality）见 `evals/README.md`。
+
+### 为什么质量评测不用「匹配度 0～100」
+
+绝对分跨 case 不可比较、每次调用会漂移、84 与 87 的差异无法解释。版本优劣采用
+**盲评 A/B**：同一份事实、同一份 JD，两个版本各出一份简历，由不知道版本来源的
+Judge 判定谁更好；每个 case 跑两轮镜像顺序（`A=旧/B=新` 与 `A=新/B=旧`）以检测位置偏差，
+结论翻转的 case 会被标记 `POSITION_INCONSISTENT` 并排除出 Win Rate。
+
+事实安全是 **Hard Gate**：出现无证据断言、虚构指标、scope 夸大、项目边界越界或
+denied 事实复活，该版本在本 case 直接判负，不能被「表达更好」抵消。
 
 ## 运行检查
 
@@ -136,10 +165,12 @@ python3 scripts/validate_claims.py "张三-AI解决方案工程师.facts.yaml" \
 python3 scripts/lint_resume.py "/绝对路径/张三-AI解决方案工程师.md"
 
 # 回归 eval
-python3 evals/run_eval.py
+python3 evals/regression/run_regression.py
 ~~~
 
 两个脚本职责不重叠：`validate_claims.py` 管事实安全，`lint_resume.py` 管输出格式。
+它们构成 Resume Skill 正常执行时的 **Runtime Guard**（`SKILL.md` 步骤 7 / 10），
+正常生成简历时只跑这两层，不跑 LLM Judge。
 
 ## 使用
 
@@ -171,13 +202,26 @@ optimize-resume/
 │   └── examples.md               # 改写示例
 ├── schemas/facts.schema.json
 ├── scripts/
-│   ├── validate_claims.py        # 事实安全 deterministic 校验
-│   └── lint_resume.py            # 输出格式校验
+│   ├── validate_claims.py        # 事实安全 deterministic 校验（Runtime Guard）
+│   └── lint_resume.py            # 输出格式校验（Runtime Guard）
 ├── evals/
-│   ├── README.md
-│   ├── rubric.md
-│   ├── run_eval.py
-│   └── cases/*.yaml
+│   ├── README.md                 # 三层结构、边界、运行方式
+│   ├── rubric.md                 # 指标定义
+│   ├── run_eval.py               # 兼容入口 → regression/
+│   ├── regression/
+│   │   ├── run_regression.py
+│   │   └── cases/*.yaml          # safety / content_quality 两类确定性用例
+│   ├── quality/
+│   │   ├── run_quality.py        # 版本对比 CLI（--dry-run / --mock / 真实 Judge）
+│   │   ├── fact_gate.py          # Fact Safety Hard Gate
+│   │   ├── evidence.py           # JD Evidence Recall
+│   │   ├── pairwise.py           # Blind Pairwise + Position Swap
+│   │   ├── benchmark/            # Golden Benchmark（12 case / 8 role family）
+│   │   ├── judges/*.md           # Judge prompts（带版本号）
+│   │   └── runs/                 # baseline / candidate 产物（不入库）
+│   ├── common/                   # loaders / schemas / judge_client / report
+│   ├── tests/                    # Harness 自身的测试（离线）
+│   └── reports/                  # 评测报告 JSON + Markdown（不入库）
 ├── examples/
 │   └── <scenario>/{case.yaml,fact-store.yaml,resume.md}
 └── README.md
@@ -185,8 +229,12 @@ optimize-resume/
 
 ## 新增规则时怎么做
 
-优先新增 `references/` 文档与 `evals/cases/` 用例，
-不要把规则继续堆进 `SKILL.md`。判定方式：
+优先新增 `references/` 文档与回归用例，不要把规则继续堆进 `SKILL.md`。判定方式：
 
-- Deterministic problem → 写进 `scripts/validate_claims.py` 并登记 issue code；
-- Semantic judgment → 留在 `references/` 由 Agent 判断，或用 judge check 声明。
+- Deterministic problem → 写进 `scripts/validate_claims.py` 并登记 issue code，
+  在 `evals/regression/cases/` 加一个正例 + 反例；
+- 属于事实安全 → 同时确认它在 `evals/quality/fact_gate.py` 的 `GATE_CATEGORY_BY_CODE`
+  里，保证版本对比时会被硬门禁拦住；
+- Semantic judgment → 留在 `references/` 由 Agent 判断，或用 judge check 声明；
+- 影响版本优劣判断的标准 → 改 `evals/quality/judges/pairwise_judge.md` 并**升版本号**，
+  否则历史报告不可比较。

@@ -1,6 +1,12 @@
 # Eval Rubric
 
-指标定义与判定方式。每个指标标注类型：
+指标定义与判定方式。
+
+本文件定义的是 **Regression Eval** 的指标：deterministic、pass/fail、守住下限。
+Quality Eval（版本优劣）的维度与口径不同，定义在 `quality/judges/pairwise_judge.md`
+与 `quality/README.md`，见文末「Quality Eval 指标」。
+
+每个指标标注类型：
 
 - **deterministic**：`scripts/validate_claims.py` 可自动判定，参与 metric 表统计；
 - **judge**：需要外部判定器（通过 `EVAL_JUDGE_CMD` 接入）；
@@ -132,3 +138,30 @@ JD 核心要求的覆盖情况。
 - fixtures suite：`validate_claims.py` 与 `lint_resume.py` 均 0 error。
 
 judge / manual 指标不参与自动通过判定，但必须在报告中如实列出。
+
+## 指标分层与 case category
+
+`evals/regression/cases/` 中的每个 case 带 `category` 字段：
+
+| category | 对应指标 | 性质 |
+|---|---|---|
+| `safety` | `fact_fidelity`、`unsupported_claim_rate`、`scope_inflation_rate`、`project_boundary_integrity`、`transferable_discipline`、`output_hygiene` | 事实安全硬约束，Error 即阻断 |
+| `content_quality` | `jd_core_coverage`、`ats_keyword_coverage`、`recruiter_salience`、`duplicate_information_rate` | 确定性内容质量护栏 |
+
+两类分别统计通过率，**不合成跨类综合分**。
+
+## Quality Eval 指标（版本对比）
+
+Quality Eval 不产出绝对分。它产出的是「哪一份更好」的方向，以及一组可诊断的比率：
+
+| 指标 | 类型 | 含义 |
+|---|---|---|
+| `fact_gate` | deterministic +（可选）judge | 硬门禁：`unsupported_claim` / `fabricated_metric` / `scope_inflation` / `project_boundary` / `denied_fact` / `transferable_as_direct` / `output_hygiene`。FAIL 的版本不能赢 |
+| `pairwise_winner` | judge | 盲评 A/B 的结果，经两轮位置交换后映射回真实版本 |
+| `position_consistency` | deterministic（对 judge 结果做映射） | 两轮结论是否一致；不一致则从 Win Rate 分母剔除 |
+| `jd_evidence_recall` | deterministic | 已表达的高价值真实 evidence ÷ 可用的高价值真实 evidence（分母只含候选人真实拥有的） |
+| `must_preserve_hits` | deterministic | benchmark 声明的必保留 evidence 是否可见 |
+| `recruiter_salience` / `information_density` / `evidence_strength` / `redundancy_conciseness` / `ats_terminology` / `interview_defensibility` | judge | Pairwise Judge 的 7 个维度，只给 A/B/Tie，不给分 |
+| `candidate_win_rate` / `loss_rate` / `tie_rate` / `regression_rate` / `position_inconsistency_rate` | deterministic（对结果聚合） | 版本级比率 |
+
+完整口径见 `evals/quality/README.md`。

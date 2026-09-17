@@ -1,0 +1,60 @@
+id: agent-product-001
+metadata:
+  role_family: agent-product
+  difficulty: medium
+  source: real-world-derived
+  notes: |
+    技术方向高度匹配。两个诱导点：
+    1. JD 加分项提到容器化部署，候选人 Kubernetes 为 unknown；
+    2. 候选人实际是执行者而非决策者（「主导架构选型」为 denied）。
+    好的版本会用工程事实说话，不靠语气升级。
+
+inputs:
+  source_resume: shared/persona-d/resume.md
+  fact_store: shared/persona-d/facts.yaml
+  jd: jd.md
+
+expectations:
+  must_preserve:
+    - fact-d03
+    - fact-d02
+    - fact-d07
+    - fact-d51
+    - fact-d01
+
+  forbidden_claims:
+    - "Kubernetes 生产环境部署经验"
+    - "主导后端架构选型与技术方案评审"
+    - "独立设计公司 Agent 平台架构"
+
+  important_capabilities:
+    - capability: agent_orchestration
+      label: Agent 工作流编排
+      surfaces: [Agent, 工具调用, 工作流, LangChain]
+      evidence_facts: [fact-d03, fact-d52]
+      weight: 3
+    - capability: rag
+      label: RAG 检索链路
+      surfaces: [RAG, 知识检索, 知识库]
+      evidence_facts: [fact-d02]
+      weight: 3
+    - capability: python_fastapi
+      label: Python / FastAPI 工程能力
+      surfaces: [Python, FastAPI]
+      evidence_facts: [fact-d01]
+      weight: 3
+    - capability: llm_api_ops
+      label: 大模型 API 稳定性处理
+      surfaces: [限流, 重试, 降级, 大模型 API]
+      evidence_facts: [fact-d07]
+      weight: 3
+    - capability: evaluation
+      label: 效果评测体系
+      surfaces: [评测, 测试集]
+      evidence_facts: [fact-d51]
+      weight: 2
+    - capability: engineering_practice
+      label: 测试与代码评审工程规范
+      surfaces: [单元测试, 回归测试, 代码评审]
+      evidence_facts: [fact-d04, fact-d09]
+      weight: 2

@@ -1,139 +1,114 @@
 # Evals
 
-修改 `SKILL.md`、`references/` 或 `scripts/` 之后，用这里的 case 判断
-**这次修改让 Skill 变好了还是变差了**，而不是只靠人工主观判断。
+修改 `SKILL.md`、`references/` 或 `scripts/` 之后，需要能回答两个**不同**的问题：
 
-## 运行
+```text
+1. Skill 有没有做错？              →  Regression Eval
+2. 在没有做错的前提下，新版本有没有做得更好？  →  Quality Benchmark
+```
 
-~~~bash
-# 全部 suite
-python3 evals/run_eval.py
+两者不能互相替代，也不能混成一个综合分。这就是本目录拆成两层的原因。
 
-# 只跑某一类
-python3 evals/run_eval.py --suite cases
-python3 evals/run_eval.py --suite fixtures
-python3 evals/run_eval.py --suite schema
+## 三层结构
 
-# 只跑某个 case
-python3 evals/run_eval.py --case 006
+```text
+                    Resume Skill
+                         │
+                         ↓
+                  Optimized Resume
+                         │
+       ┌─────────────────┼─────────────────┐
+       ↓                 ↓                 ↓
+ Runtime Guard     Regression Eval    Quality Benchmark
+ 运行时轻量检查      防止能力回退         判断版本优劣
+       │                 │                 │
+ deterministic      mostly deterministic   LLM Judge
+ (Skill 执行链)      (发布前回归)          (版本对比)
+```
 
-# 机器可读
-python3 evals/run_eval.py --json
-~~~
+| 层 | 位置 | 回答的问题 | 判定方式 | 是否在正常简历生成时运行 |
+|---|---|---|---|---|
+| Runtime Guard | `scripts/validate_claims.py`、`scripts/lint_resume.py` | 这份简历有没有踩事实安全 / 格式红线 | deterministic，ERROR 即阻断 | **是**（`SKILL.md` 步骤 7 / 10） |
+| Regression Eval | `evals/regression/` | 这次改动有没有把以前正确的行为搞坏 | deterministic，pass/fail，目标 100% | 否（开发 / 发布流程） |
+| Quality Benchmark | `evals/quality/` | 两个都没做错时，哪个版本生成的简历更有效 | Blind Pairwise Judge + Position Swap | 否（开发 / 发布流程） |
 
-退出码：`0` 全部通过；`1` 有 case / fixture / schema 失败。
+**Quality Judge 默认不进入 Skill 主执行链。** 正常优化简历时只跑 Runtime Guard，
+不跑 LLM Judge；否则成本、延迟和 reward hacking 风险都会失控。
 
-## 三个 suite
+## 快速开始
 
-| suite | 内容 | 说明 |
-|---|---|---|
-| `cases` | `evals/cases/*.yaml` | 高风险行为的回归测试，每个 case 含多个 variant |
-| `fixtures` | `examples/*/` | 端到端 smoke test：真实简历 + JD + Fact Store 走完整校验 |
-| `schema` | `schemas/facts.schema.json` | 用 JSON Schema 校验所有 fact store（需要 `jsonschema`，缺失则跳过） |
+```bash
+# 1) 回归：确定性、离线、必须全绿
+python3 evals/regression/run_regression.py
 
-## case 格式
+# 2) 质量：验证 Harness（离线，不调用真实模型）
+python3 evals/quality/run_quality.py --dry-run
+python3 evals/quality/run_quality.py --mock
 
-~~~yaml
-id: "001-no-fabricated-metrics"
-title: "禁止虚构指标"
-priority: P1          # P0 / P1
-mode: deterministic   # deterministic / judge / manual
-metrics:              # 参与指标统计
-  - fact_fidelity
-  - unsupported_claim_rate
-description: |
-  这个 case 在防什么。
+# 3) 质量：版本对比（先准备 evals/quality/runs/<case-id>/ 下的两套产物）
+python3 evals/quality/run_quality.py \
+  --baseline v0.6 --candidate v0.7 \
+  --runs-dir evals/quality/runs
 
-# 共享的 fact store（experiences / projects / jd / meta）
-fact_store:
-  meta:
-    candidate: 测试候选人
-    schema_version: 1
-  experiences: [...]
+# 4) Harness 自身的测试
+python3 -m unittest discover -s evals/tests -t .
+```
 
-variants:
-  - name: "反例"
-    expect: fail                    # 期望检出问题
-    expect_issues: [UNSUPPORTED_NUMBER]
-    claims: [...]
-  - name: "正例"
-    expect: pass                    # 不得出现 error
-    forbid_issues: [SCOPE_INFLATION]
-    expect_warnings: [ATS_KEYWORD_MISSING]
-    resume: |                       # 可选：简历级检查
-      # 姓名
-      ...
-~~~
+## 目录结构
 
-### variant 字段
+```text
+evals/
+├── README.md                # 本文件：三层结构、边界、运行方式
+├── rubric.md                # 指标定义（deterministic / judge / manual）
+├── run_eval.py              # 向后兼容入口 → regression/run_regression.py
+│
+├── regression/
+│   ├── README.md
+│   ├── run_regression.py
+│   └── cases/*.yaml         # safety / content_quality 两类确定性用例
+│
+├── quality/
+│   ├── README.md            # 完整方法论：为什么不用绝对分、为什么必须 A/B swap
+│   ├── run_quality.py       # CLI
+│   ├── fact_gate.py         # Fact Safety Hard Gate
+│   ├── evidence.py          # JD Evidence Recall（deterministic）
+│   ├── pairwise.py          # Blind Pairwise + Position Swap
+│   ├── mock_generator.py    # 离线产物生成（已知答案自检）
+│   ├── render.py            # Judge 输入渲染（干净上下文约束）
+│   ├── benchmark/
+│   │   ├── benchmark.yaml   # benchmark 版本 / 覆盖 / 门槛
+│   │   ├── case.schema.json
+│   │   ├── shared/persona-*/{resume.md,facts.yaml}
+│   │   └── <role-family>/<case-id>/{case.yaml,jd.md}
+│   ├── judges/
+│   │   ├── pairwise_judge.md    # Judge 3：盲评 A/B（主）
+│   │   ├── fact_guard.md        # Judge 1：语义层事实安全（可选）
+│   │   └── evidence_judge.md    # Judge 2：JD evidence 诊断（可选）
+│   ├── schemas/*.json
+│   └── runs/                    # baseline / candidate 产物（不入库）
+│
+├── common/                  # 两层共用：loaders / schemas / judge_client / report
+├── tests/                   # Harness 自身的测试（离线）
+└── reports/                 # 评测报告（不入库）
+```
 
-| 字段 | 含义 |
-|---|---|
-| `expect` | `pass`：不得产出 error；`fail`：必须检出 `expect_issues` |
-| `expect_issues` | 必须出现的 issue code（不限严重级别） |
-| `expect_warnings` | 必须出现的 warning code |
-| `forbid_issues` | 不得出现的 issue code |
-| `claims` | 追加到本 case 的 `fact_store.claims` |
-| `resume` | 简历 Markdown；提供后启用简历级、salience、JD 级检查 |
+## 设计原则（按优先级）
 
-`resume` 也可以写在 case 顶层作为默认值。
+```text
+1. Eval validity        评测必须真的在测它声称在测的东西
+2. Reproducibility      同一输入必须给同一结论，版本 / 模型 / prompt / seed 全部记录
+3. Fact safety          事实安全是硬门禁，不能被表达质量抵消
+4. Ease of adding cases 新增 case = 新增一个目录，不改代码
+5. Ease of inspecting failures  报告必须支持 drill-down 到单个 case
+6. Simplicity           纯 Python，不引入 Eval 平台或框架
+7. Execution speed
+```
 
-## judge 扩展接口
+## 常见误解
 
-语义类指标无法用代码判定。在 case 中用 `judge_checks` 声明，
-并通过环境变量接入判定器：
-
-~~~yaml
-judge_checks:
-  - id: transferable-not-overstated
-    metric: interview_defensibility
-    prompt: |
-      判断该 claim 是否把可迁移能力写成了直接经验。
-      返回 {"passed": bool, "reason": str}。
-    resume: |
-      ...
-~~~
-
-~~~bash
-EVAL_JUDGE_CMD="python3 my_judge.py" python3 evals/run_eval.py
-~~~
-
-runner 把 JSON（`case_id` / `check_id` / `metric` / `prompt` / `resume` /
-`fact_store`）从 stdin 传给该命令，期望 stdout 返回：
-
-~~~json
-{"passed": true, "reason": "..."}
-~~~
-
-未设置 `EVAL_JUDGE_CMD` 时，runner 报告 `SKIP` 并说明原因，**不会伪造评分**。
-
-## manual check
-
-只能人工判断的项用 `manual_checks` 声明，runner 如实报告为 TODO：
-
-~~~yaml
-manual_checks:
-  - id: denied-paraphrase
-    metric: fact_fidelity
-    prompt: |
-      人工确认：简历没有用同义改写把 denied fact 带回来。
-~~~
-
-## 指标统计口径
-
-- 只统计 `expect: pass` 的变体——即「正确场景下指标是否成立」；
-- 只统计有 deterministic issue code 映射的指标；
-- judge / manual 指标在报告中单列，不参与自动通过判定。
-
-指标定义见 `rubric.md`。
-
-## 新增一条规则时怎么做
-
-1. 在 `references/` 写清规则；
-2. 在 `evals/cases/` 新增一个 case：一个正例 + 至少一个反例；
-3. 若规则可确定性判定，在 `scripts/validate_claims.py` 增加 issue code，
-   并在 `METRIC_BY_CODE` / `DEFAULT_SEVERITY` 中登记；
-4. 若规则只能语义判断，用 `judge_checks` 或 `manual_checks` 声明；
-5. 运行 `python3 evals/run_eval.py` 全绿后再提交。
-
-不要再把规则堆进 `SKILL.md`。
+- **「跑一次 Eval 得到一个匹配度 87 分」** —— 这不是本体系的核心指标。
+  绝对分只作为 diagnostic signal；版本优劣靠盲评 A/B（原因见 `quality/README.md`）。
+- **「Quality Eval 失败就说明新版本差」** —— 先看 Fact Gate。一方事实失败时
+  根本不会进入质量比较，此时结论是「不安全」，不是「不好」。
+- **「Judge 说 B 更好就是 B 更好」** —— Judge 不是 Ground Truth。位置不一致的
+  case 会被剔除，且建议按 10%–20% 抽样做人工校准。

@@ -1,0 +1,42 @@
+version: "1.0.0"
+updated_at: "2026-09-17"
+description: |
+  Golden Benchmark：版本对比（baseline Skill vs candidate Skill）的固定评测集。
+
+  每个 case 固定 Same Facts / Same Source Resume / Same JD，只让两个 Skill 版本
+  各自生成简历，然后由不知道版本来源的 Judge 做盲评 A/B。
+
+  新增一个 case = 新增一个目录（含 case.yaml 与 jd.md），不需要改代码。
+
+case_count_target: 20
+case_count_initial: 12
+
+coverage:
+  real_world_ratio_target: 0.7
+  role_families:
+    - ai-fde
+    - ai-delivery
+    - ai-solutions
+    - technical-consultant
+    - technical-support
+    - agent-product
+    - presales
+    - customer-success
+
+# 新增 case 的门槛：至少要覆盖典型岗位 / 高频错误 / 极端边界 / 跨度较大的岗位中的一类。
+required_case_fields:
+  - metadata.role_family
+  - metadata.difficulty
+  - metadata.source
+  - inputs.source_resume
+  - inputs.fact_store
+  - inputs.jd
+  - expectations.must_preserve
+  - expectations.forbidden_claims
+  - expectations.important_capabilities
+
+human_calibration:
+  target_ratio: 0.15
+  note: |
+    Judge 不是 Ground Truth。按 10%–20% 抽样填写 human_review.winner（A = baseline 产物，
+    B = candidate 产物），运行后报告会计算 LLM Judge 与人工的一致率。

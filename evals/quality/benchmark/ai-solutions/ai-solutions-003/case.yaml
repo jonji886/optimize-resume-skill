@@ -1,0 +1,62 @@
+id: ai-solutions-003
+metadata:
+  role_family: ai-solutions
+  difficulty: hard
+  source: synthetic
+  notes: |
+    跨度较大的岗位迁移：纯后端开发工程师 → 面向客户的 AI 解决方案。
+    真实缺口是「客户交付 / 现场经验」完全没有证据，Kubernetes 为 unknown，
+    「主导架构选型」为 denied。
+    好的版本不会为了贴合岗位而编造客户交付经验，而是把 RAG/Agent/评测/需求澄清
+    这些真实证据讲清楚，并诚实处理缺口。
+
+inputs:
+  source_resume: shared/persona-d/resume.md
+  fact_store: shared/persona-d/facts.yaml
+  jd: jd.md
+
+expectations:
+  must_preserve:
+    - fact-d02
+    - fact-d03
+    - fact-d51
+    - fact-d07
+    - fact-d10
+
+  forbidden_claims:
+    - "Kubernetes 生产运维经验"
+    - "主导架构选型与技术方案评审"
+    - "负责多个企业客户的现场交付"
+    - "独立负责客户方案设计与答辩"
+
+  important_capabilities:
+    - capability: rag_agent_dev
+      label: RAG / Agent 应用开发
+      surfaces: [RAG, Agent, LangChain, 知识检索]
+      evidence_facts: [fact-d02, fact-d03]
+      weight: 3
+    - capability: python_fastapi
+      label: Python / FastAPI 开发
+      surfaces: [Python, FastAPI]
+      evidence_facts: [fact-d01]
+      weight: 3
+    - capability: llm_integration
+      label: 大模型 API 集成与稳定性处理
+      surfaces: [大模型 API, 限流, 重试, 降级]
+      evidence_facts: [fact-d07]
+      weight: 3
+    - capability: evaluation
+      label: 效果评测与测试意识
+      surfaces: [评测, 测试集, 回归测试, 单元测试]
+      evidence_facts: [fact-d51, fact-d04]
+      weight: 2
+    - capability: requirement_clarify
+      label: 需求边界澄清
+      surfaces: [需求边界, 拆解, 产品, 测试]
+      evidence_facts: [fact-d10]
+      weight: 2
+    - capability: mcp
+      label: MCP / 工具调用
+      surfaces: [MCP, 工具调用]
+      evidence_facts: [fact-d52]
+      weight: 1

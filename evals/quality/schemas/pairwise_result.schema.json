@@ -1,0 +1,48 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "optimize-resume/evals/quality/schemas/pairwise_result.schema.json",
+  "title": "Pairwise Judge Result",
+  "description": "Blind pairwise judge 的结构化输出。维度只表达偏好方向，不表达绝对分；事实安全不在这里，走 Fact Gate。",
+  "type": "object",
+  "required": [
+    "jd_evidence_coverage",
+    "evidence_strength",
+    "recruiter_salience",
+    "information_density",
+    "redundancy_conciseness",
+    "ats_terminology",
+    "interview_defensibility",
+    "overall"
+  ],
+  "additionalProperties": false,
+  "patternProperties": {
+    "^(jd_evidence_coverage|evidence_strength|recruiter_salience|information_density|redundancy_conciseness|ats_terminology|interview_defensibility)$": {
+      "type": "object",
+      "required": ["winner", "reason"],
+      "additionalProperties": false,
+      "properties": {
+        "winner": { "enum": ["A", "B", "Tie"] },
+        "reason": { "type": "string", "minLength": 1 }
+      }
+    }
+  },
+  "properties": {
+    "jd_evidence_coverage": { "type": "object" },
+    "evidence_strength": { "type": "object" },
+    "recruiter_salience": { "type": "object" },
+    "information_density": { "type": "object" },
+    "redundancy_conciseness": { "type": "object" },
+    "ats_terminology": { "type": "object" },
+    "interview_defensibility": { "type": "object" },
+    "overall": {
+      "type": "object",
+      "required": ["winner", "confidence", "reason"],
+      "additionalProperties": false,
+      "properties": {
+        "winner": { "enum": ["A", "B", "Tie"] },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "reason": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

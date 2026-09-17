@@ -1,0 +1,101 @@
+# persona-b：技术支持 / 客户支持工程师（SaaS 交付与排障方向）
+#
+# ground truth fact store。denied 的「续约率 / 客户满意度」是这套 persona 的关键边界：
+# 任何版本都不得写回，同时「客户成功」只能作为可迁移能力表达。
+meta:
+  candidate: 李四
+  target_role: 技术支持工程师
+  schema_version: 1
+
+jd:
+  title: 技术支持工程师
+  core_requirements:
+    - 客户交付
+    - 上线验收
+    - 需求澄清
+  ats_keywords:
+    - SaaS
+    - API
+    - SDK
+    - 工单
+
+experiences:
+  - id: corp-a
+    employer: 某企业服务公司
+    role: 技术服务工程师
+    type: work
+    time_range: 2021-07 ~ 2025-06
+    facts:
+      - id: fact-b01
+        statement: 负责企业客户 SaaS 产品 API/SDK 接入、联调与上线验收
+        status: confirmed
+        scope: core_execution
+        source: original_resume
+        jd_requirements: [客户交付, 上线验收, API, SDK, SaaS]
+      - id: fact-b02
+        statement: 面向客户 IT 与业务团队完成需求澄清与业务流程梳理
+        status: confirmed
+        scope: core_execution
+        source: original_resume
+        jd_requirements: [需求澄清]
+      - id: fact-b03
+        statement: 定位 KA 客户日常使用问题，输出排障手册
+        status: confirmed
+        scope: core_execution
+        source: original_resume
+      - id: fact-b04
+        statement: 提升客户续约率和满意度
+        status: denied
+        scope: unspecified
+        source: user_correction
+        match_terms: [续约率, 客户满意度, 续约, 满意度]
+      - id: fact-b05
+        statement: 处理客户工单并按 SLA 升级，累计关闭 1200+ 工单
+        status: confirmed
+        scope: core_execution
+        source: original_resume
+        numbers: ["1200"]
+        jd_requirements: [工单]
+      - id: fact-b06
+        statement: 负责产品版本发布前的回归验证与灰度发布支持
+        status: confirmed
+        scope: support
+        source: original_resume
+      - id: fact-b07
+        statement: 具备企业客户交付与上线验收经验，但职责范围不覆盖客户经营类工作
+        status: transferable
+        scope: core_execution
+        source: user_confirmation
+        jd_requirements: [客户成功]
+      - id: fact-b08
+        statement: 使用 Python 编写工单数据统计脚本，输出月度问题分布
+        status: confirmed
+        scope: core_execution
+        source: user_note
+        jd_requirements: [Python]
+      - id: fact-b09
+        statement: 面向客户开展产品使用培训与最佳实践分享
+        status: confirmed
+        scope: core_execution
+        source: original_resume
+      - id: fact-b10
+        statement: 输出高频问题知识库条目，减少重复咨询
+        status: confirmed
+        scope: core_execution
+        source: user_note
+
+projects:
+  - id: kb-bot
+    name: 知识库问答机器人
+    type: personal_project
+    commercial_delivery: false
+    delivery_status: not_delivered
+    role: 独立搭建
+    facts:
+      - id: fact-b51
+        statement: 使用 Dify 搭建个人知识库问答机器人并接入企业文档样例
+        status: confirmed
+        scope: owner
+        source: user_note
+
+claims: []

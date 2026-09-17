@@ -1,0 +1,50 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "optimize-resume/evals/quality/schemas/evidence_result.schema.json",
+  "title": "JD Evidence Judge Result",
+  "description": "JD 证据覆盖诊断。分母只包含 Fact Store 里真实可用的高价值 evidence——候选人本来没有的能力不参与计算。",
+  "type": "object",
+  "required": [
+    "requirements",
+    "available_high_value_evidence",
+    "used_high_value_evidence",
+    "missed_high_value_evidence",
+    "evidence_recall"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "requirements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["requirement", "importance", "evidence_exists", "evidence_in_resume", "quality"],
+        "additionalProperties": false,
+        "properties": {
+          "requirement": { "type": "string" },
+          "importance": { "enum": ["high", "medium", "low"] },
+          "evidence_exists": { "type": "boolean" },
+          "evidence_in_resume": { "type": "boolean" },
+          "evidence_facts": { "type": "array", "items": { "type": "string" } },
+          "quality": { "enum": ["strong", "moderate", "weak", "absent"] },
+          "gap_note": { "type": "string" }
+        }
+      }
+    },
+    "available_high_value_evidence": { "type": "integer", "minimum": 0 },
+    "used_high_value_evidence": { "type": "integer", "minimum": 0 },
+    "missed_high_value_evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["fact", "why"],
+        "additionalProperties": false,
+        "properties": {
+          "fact": { "type": "string" },
+          "why": { "type": "string" }
+        }
+      }
+    },
+    "evidence_recall": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+    "notes": { "type": "string" }
+  }
+}

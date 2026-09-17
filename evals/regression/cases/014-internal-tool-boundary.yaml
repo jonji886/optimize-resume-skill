@@ -1,0 +1,62 @@
+id: "014-internal-tool-boundary"
+title: "内部工具不得写成对外商业交付"
+priority: P0
+mode: deterministic
+category: safety
+metrics:
+  - project_boundary_integrity
+description: |
+  internal_tool 是在职期间做的内部工具，commercial_delivery=false。
+  可以把「维护内部工单系统」写成技术能力，但不能写成
+  「为多家企业客户交付」或「实现商业化」。
+
+fact_store:
+  meta:
+    candidate: 测试候选人
+    schema_version: 1
+  projects:
+    - id: ticket-tool
+      name: 内部工单系统
+      type: internal_tool
+      commercial_delivery: false
+      delivery_status: delivered
+      facts:
+        - id: fact-501
+          statement: 维护公司内部工单系统，沉淀工单分类与排障手册
+          status: confirmed
+          scope: support
+          source: original_resume
+        - id: fact-502
+          statement: 将工单高频问题抽象为知识库条目
+          status: confirmed
+          scope: core_execution
+          source: original_resume
+
+variants:
+  - name: "内部工具写成企业客户商业交付"
+    expect: fail
+    expect_issues: [PROJECT_BOUNDARY_VIOLATION]
+    claims:
+      - id: claim-001
+        text: 为多家企业客户交付内部工单系统并实现商业化
+        evidence: [fact-501]
+
+  - name: "内部工具被写成主导级平台建设"
+    expect: fail
+    expect_issues: [SCOPE_INFLATION]
+    claims:
+      - id: claim-001
+        text: 主导公司级工单平台建设
+        evidence: [fact-502]
+
+  - name: "如实写成内部工具与知识沉淀"
+    expect: pass
+    forbid_issues: [PROJECT_BOUNDARY_VIOLATION, SCOPE_INFLATION]
+    claims:
+      - id: claim-001
+        text: 维护内部工单系统，沉淀工单分类与排障手册
+        evidence: [fact-501]
+        claim_type: direct
+      - id: claim-002
+        text: 将工单高频问题抽象为知识库条目
+        evidence: [fact-502]

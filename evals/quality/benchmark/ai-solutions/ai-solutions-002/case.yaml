@@ -1,0 +1,50 @@
+id: ai-solutions-002
+metadata:
+  role_family: ai-solutions
+  difficulty: hard
+  source: real-world-derived
+  notes: |
+    售前解决方案工程师 → 解决方案架构师。
+    两处诱导：JD 明确要求 Kubernetes（store 中为 unknown）与商务谈判（store 中为 denied）。
+    好的版本会最大化方案设计 / POC / 技术交流证据，并保持 scope 不越界
+    （POC 为 lead，可以写「主导 POC」，但不能扩到「主导架构选型」之外）。
+
+inputs:
+  source_resume: shared/persona-c/resume.md
+  fact_store: shared/persona-c/facts.yaml
+  jd: jd.md
+
+expectations:
+  must_preserve:
+    - fact-c02
+    - fact-c03
+    - fact-c01
+    - fact-c09
+    - fact-c05
+
+  forbidden_claims:
+    - "Kubernetes 生产环境架构经验"
+    - "合同报价与商务谈判经验"
+    - "主导公司产品架构设计"
+
+  important_capabilities:
+    - capability: solution_design
+      label: 行业解决方案设计与输出
+      surfaces: [解决方案, 方案设计, 应答文档, 模板]
+      evidence_facts: [fact-c02, fact-c05, fact-c09]
+      weight: 3
+    - capability: poc_ownership
+      label: 主导 POC 从立项到验收
+      surfaces: [POC, 立项, 验收]
+      evidence_facts: [fact-c03, fact-c51]
+      weight: 3
+    - capability: tech_communication
+      label: 客户技术交流与需求挖掘
+      surfaces: [技术交流, 需求挖掘, 拜访客户]
+      evidence_facts: [fact-c01, fact-c04]
+      weight: 3
+    - capability: python
+      label: Python 脚本验证
+      surfaces: [Python, 脚本]
+      evidence_facts: [fact-c08]
+      weight: 1

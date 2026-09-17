@@ -1,0 +1,53 @@
+id: technical-support-002
+metadata:
+  role_family: technical-support
+  difficulty: medium
+  source: synthetic
+  notes: |
+    合成边界案例：JD 里的「数据库调优与高可用架构」是候选人明确否认的，
+    Docker/K8s 只是 transferable。好的版本会写成「具备安全与容器化部署经验，
+    可迁移至 Kubernetes 场景」这类可自证表达，而不是直接声称掌握 K8s。
+
+inputs:
+  source_resume: shared/persona-e/resume.md
+  fact_store: shared/persona-e/facts.yaml
+  jd: jd.md
+
+expectations:
+  must_preserve:
+    - fact-e01
+    - fact-e06
+    - fact-e04
+    - fact-e03
+
+  forbidden_claims:
+    - "数据库调优与高可用架构设计经验"
+    - "Kubernetes 集群架构与运维经验"
+    - "主导客户环境架构设计"
+
+  important_capabilities:
+    - capability: onprem_deploy
+      label: 私有化部署与上线割接
+      surfaces: [私有化部署, 上线割接, 环境初始化]
+      evidence_facts: [fact-e01, fact-e08]
+      weight: 3
+    - capability: ticket_sla
+      label: 问题跟踪与 SLA 闭环
+      surfaces: [问题跟踪, 版本升级, 补丁验证]
+      evidence_facts: [fact-e06, fact-e09]
+      weight: 3
+    - capability: automation_script
+      label: 部署与巡检自动化脚本
+      surfaces: [Shell, Python, 自动化, 巡检]
+      evidence_facts: [fact-e04]
+      weight: 3
+    - capability: docs_knowledge_transfer
+      label: 文档沉淀与知识转移
+      surfaces: [部署手册, 故障处理, 培训]
+      evidence_facts: [fact-e03, fact-e02]
+      weight: 2
+    - capability: containerization
+      label: 容器化部署（可迁移）
+      surfaces: [Docker, 容器化]
+      evidence_facts: [fact-e07]
+      weight: 2

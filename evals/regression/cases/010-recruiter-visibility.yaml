@@ -1,0 +1,106 @@
+id: "010-recruiter-visibility"
+title: "核心 evidence 不得埋在低优先级位置"
+priority: P1
+mode: deterministic
+category: content_quality
+metrics:
+  - recruiter_salience
+description: |
+  最有匹配度的事实（OpenAPI 接入、80+ 应用上线）出现在第二段工作经历，
+  也就是 HR 10–20 秒视线之外，属于 Recruiter Salience 失败。
+  注意：这与 ATS 是否命中关键词是两件事。关键词存在但埋得深，
+  ATS Coverage 可以 pass，Recruiter Salience 仍然 fail。
+
+fact_store:
+  meta:
+    candidate: 测试候选人
+    schema_version: 1
+  jd:
+    title: AI 解决方案工程师
+    # 刻意只放一个两个变体都已命中的关键词：
+    # 本 case 要证明「ATS 通过」与「Recruiter Salience 通过」是两件独立的事。
+    core_requirements:
+      - OpenAPI
+    ats_keywords:
+      - OpenAPI
+  experiences:
+    - id: corp-erp
+      employer: 某制造企业
+      role: 信息化专员
+      type: work
+      facts:
+        - id: fact-401
+          statement: 维护内部 ERP 系统日常运行，处理基础账号与权限问题
+          status: confirmed
+          scope: support
+          source: original_resume
+    - id: corp-tech
+      employer: 某科技有限公司
+      role: 技术服务工程师
+      type: work
+      facts:
+        - id: fact-402
+          statement: 负责多个企业客户 OpenAPI 接入与上线，累计支撑 80+ 应用上线
+          status: confirmed
+          scope: core_execution
+          source: original_resume
+          jd_requirements: [API 集成]
+
+variants:
+  - name: "核心 evidence 埋在第二段经历"
+    expect: fail
+    expect_issues: [RECRUITER_SALIENCE_MISSING]
+    resume: |
+      # 吴九
+      手机/微信：13800000000 ｜邮箱：wujiu@example.com
+      ## 个人优势
+      - **沟通协作**：具备良好的跨团队沟通能力，能够推动多方协同。
+      ## 工作经历
+      ### 某制造企业｜信息化专员
+      2018-07 ~ 2021-06
+      - **系统运维**：维护内部 ERP 系统日常运行，处理基础账号与权限问题。
+      ### 某科技有限公司｜技术服务工程师
+      2021-07 ~ 2025-06
+      - **开放平台接入**：负责多个企业客户 OpenAPI 接入与上线，累计支撑 80+ 应用上线。
+      ## 教育背景与认证
+      - 某大学｜计算机科学与技术｜本科｜2014-09 ~ 2018-06
+    claims:
+      - id: claim-001
+        text: 负责多个企业客户 OpenAPI 接入与上线，累计支撑 80+ 应用上线
+        evidence: [fact-402]
+        relevance_rank: 1
+      - id: claim-002
+        text: 具备良好的跨团队沟通能力，能够推动多方协同
+        evidence: []
+        relevance_rank: 4
+
+  - name: "核心 evidence 出现在个人优势"
+    expect: pass
+    forbid_issues: [RECRUITER_SALIENCE_MISSING, JD_CORE_REQUIREMENT_UNCOVERED]
+    resume: |
+      # 吴九
+      手机/微信：13800000000 ｜邮箱：wujiu@example.com
+      ## 个人优势
+      - **API 集成**：负责多个企业客户 OpenAPI 接入与上线，累计支撑 80+ 应用上线。
+      ## 工作经历
+      ### 某制造企业｜信息化专员
+      2018-07 ~ 2021-06
+      - **系统运维**：维护内部 ERP 系统日常运行，处理基础账号与权限问题。
+      ### 某科技有限公司｜技术服务工程师
+      2021-07 ~ 2025-06
+      - **开放平台接入**：面向企业客户完成 OpenAPI 接入、联调与上线验收，累计支撑 80+ 应用上线。
+      ## 教育背景与认证
+      - 某大学｜计算机科学与技术｜本科｜2014-09 ~ 2018-06
+    claims:
+      - id: claim-001
+        text: 负责多个企业客户 OpenAPI 接入与上线，累计支撑 80+ 应用上线
+        evidence: [fact-402]
+        relevance_rank: 1
+      - id: claim-002
+        text: 维护内部 ERP 系统日常运行，处理基础账号与权限问题
+        evidence: [fact-401]
+        relevance_rank: 5
+      - id: claim-003
+        text: 面向企业客户完成 OpenAPI 接入、联调与上线验收，累计支撑 80+ 应用上线
+        evidence: [fact-402]
+        relevance_rank: 4

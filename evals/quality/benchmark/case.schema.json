@@ -1,0 +1,101 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "optimize-resume/evals/quality/benchmark/case.schema.json",
+  "title": "Quality Eval Golden Case",
+  "description": "一个版本对比评测单元。Same Facts / Same Source Resume / Same JD，只比较两个 Skill 版本的产出。期望值是「语义与 evidence」，不是固定文案。",
+  "type": "object",
+  "required": ["id", "metadata", "inputs", "expectations"],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]*$",
+      "description": "全局唯一 case id，建议 <role-family>-<序号>"
+    },
+    "metadata": {
+      "type": "object",
+      "required": ["role_family", "difficulty", "source"],
+      "additionalProperties": false,
+      "properties": {
+        "role_family": {
+          "enum": ["ai-fde", "ai-delivery", "ai-solutions", "technical-consultant",
+                   "technical-support", "agent-product", "presales", "customer-success"]
+        },
+        "difficulty": { "enum": ["easy", "medium", "hard"] },
+        "source": {
+          "enum": ["real-world", "real-world-derived", "synthetic"],
+          "description": "real-world = 真实案例；real-world-derived = 真实案例改写；synthetic = 刻意构造的边界案例"
+        },
+        "notes": { "type": "string" }
+      }
+    },
+    "inputs": {
+      "type": "object",
+      "required": ["source_resume", "fact_store", "jd"],
+      "additionalProperties": false,
+      "properties": {
+        "source_resume": { "type": "string", "description": "相对 case 目录或 benchmark 根目录的路径" },
+        "fact_store": { "type": "string" },
+        "jd": { "type": "string" },
+        "context": { "type": "string", "description": "可选：额外相关上下文（带端信息等），不含生成过程信息" }
+      }
+    },
+    "expectations": {
+      "type": "object",
+      "required": ["must_preserve", "forbidden_claims", "important_capabilities"],
+      "additionalProperties": false,
+      "properties": {
+        "must_preserve": {
+          "type": "array",
+          "description": "必须在最终简历中可见的高价值 fact id。检查的是 evidence 是否可见，不是措辞。",
+          "items": { "type": "string" }
+        },
+        "forbidden_claims": {
+          "type": "array",
+          "description": "任何版本都不得出现的表述（语义级禁写项，不是逐字匹配）。",
+          "items": { "type": "string" }
+        },
+        "important_capabilities": {
+          "type": "array",
+          "description": "JD 的核心能力诉求，以及候选人真实可用于支撑它们的 evidence。",
+          "items": {
+            "type": "object",
+            "required": ["capability", "label", "surfaces", "evidence_facts"],
+            "additionalProperties": false,
+            "properties": {
+              "capability": { "type": "string", "description": "稳定标识，如 customer_delivery" },
+              "label": { "type": "string", "description": "人可读的能力描述" },
+              "surfaces": {
+                "type": "array",
+                "description": "候选人侧可以证明该能力的真实表述面（来自 Fact Store，不是 JD 抄写）",
+                "items": { "type": "string" }
+              },
+              "evidence_facts": {
+                "type": "array",
+                "description": "Fact Store 中真正支撑该能力的 fact id",
+                "items": { "type": "string" }
+              },
+              "weight": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 3,
+                "default": 2,
+                "description": "对该 JD 的重要性权重，用于加权 Evidence Recall"
+              }
+            }
+          }
+        }
+      }
+    },
+    "human_review": {
+      "type": "object",
+      "description": "可选的人工盲评标签（A = baseline 产物，B = candidate 产物），用于 Judge Calibration。",
+      "additionalProperties": false,
+      "properties": {
+        "winner": { "enum": ["A", "B", "Tie"] },
+        "reviewer": { "type": "string" },
+        "notes": { "type": "string" }
+      }
+    }
+  }
+}

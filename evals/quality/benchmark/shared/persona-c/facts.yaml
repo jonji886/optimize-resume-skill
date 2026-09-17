@@ -1,0 +1,96 @@
+# persona-c：售前解决方案工程师
+#
+# ground truth fact store。关键边界：
+#   - Kubernetes 为 unknown（JD 常见要求，但候选人无证据）；
+#   - 「合同报价 / 商务谈判」为 denied，不得写回。
+meta:
+  candidate: 王五
+  target_role: 售前解决方案工程师
+  schema_version: 1
+
+jd:
+  title: 售前解决方案工程师
+  core_requirements:
+    - 方案设计
+    - 技术交流
+    - POC
+  ats_keywords:
+    - POC
+    - 解决方案
+    - 技术交流
+
+experiences:
+  - id: corp-presales
+    employer: 某科技有限公司
+    role: 售前解决方案工程师
+    type: work
+    time_range: 2021-07 ~ 2025-06
+    facts:
+      - id: fact-c01
+        statement: 面向客户业务与 IT 团队开展技术交流与需求挖掘
+        status: confirmed
+        scope: core_execution
+        source: original_resume
+        jd_requirements: [技术交流]
+      - id: fact-c02
+        statement: 针对客户业务场景输出解决方案并完成产品演示与宣讲
+        status: confirmed
+        scope: core_execution
+        source: original_resume
+        jd_requirements: [方案设计, 解决方案]
+      - id: fact-c03
+        statement: 主导 3 个 POC 项目从立项到验收
+        status: confirmed
+        scope: lead
+        source: original_resume
+        numbers: ["3"]
+        jd_requirements: [POC]
+      - id: fact-c04
+        statement: 与销售同行拜访客户，梳理业务痛点并转化为方案输入
+        status: confirmed
+        scope: core_execution
+        source: original_resume
+        jd_requirements: [技术交流]
+      - id: fact-c05
+        statement: 编写投标技术方案与应答文档
+        status: confirmed
+        scope: core_execution
+        source: original_resume
+        jd_requirements: [方案设计]
+      - id: fact-c06
+        statement: Kubernetes 有实际部署经验
+        status: unknown
+        source: original_resume
+      - id: fact-c07
+        statement: 直接负责合同报价与商务谈判
+        status: denied
+        source: user_correction
+        match_terms: [合同报价, 商务谈判, 报价]
+      - id: fact-c08
+        statement: 使用 Python 编写 POC 环境的数据准备与校验脚本
+        status: confirmed
+        scope: core_execution
+        source: user_note
+        jd_requirements: [Python]
+      - id: fact-c09
+        statement: 输出行业解决方案模板与竞品对比材料，复用至多个客户场景
+        status: confirmed
+        scope: core_execution
+        source: original_resume
+        jd_requirements: [方案设计]
+
+projects:
+  - id: poc-demo
+    name: 客户 POC 演示环境
+    type: work_project
+    commercial_delivery: true
+    delivery_status: delivered
+    role: 主要执行
+    facts:
+      - id: fact-c51
+        statement: 为客户 POC 搭建演示环境与数据准备流程
+        status: confirmed
+        scope: core_execution
+        source: original_resume
+
+claims: []

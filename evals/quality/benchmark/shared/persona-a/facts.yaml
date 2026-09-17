@@ -1,0 +1,117 @@
+# persona-a：技术服务工程师（开放平台接入 / 客户交付方向）
+#
+# 这份 fact store 是 benchmark 的 ground truth：同一 case 下 baseline 与 candidate
+# 两个 Skill 版本共用它，保证「Same Facts」。
+# 注意：这里故意保留 denied / unknown / transferable 事实，用来检验两个版本是否
+# 都会守住事实边界。claims 为空——claims 属于各版本自己的产出。
+meta:
+  candidate: 张三
+  target_role: 技术服务工程师
+  schema_version: 1
+
+jd:
+  title: 技术服务工程师
+  core_requirements:
+    - API 集成
+    - 客户交付
+    - Python
+  ats_keywords:
+    - OpenAPI
+    - Webhook
+    - Python
+
+experiences:
+  - id: corp-qunhe
+    employer: 杭州群核信息技术有限公司
+    role: 技术服务工程师
+    type: work
+    time_range: 2021-07 ~ 2025-06
+    facts:
+      - id: fact-a01
+        statement: 面向企业客户完成 OpenAPI、OAuth/Token、Webhook 接入、联调与上线验收，累计支撑 80+ 应用上线
+        status: confirmed
+        scope: core_execution
+        source: original_resume
+        numbers: ["80"]
+        jd_requirements: [API 集成, 客户交付, OpenAPI, Webhook]
+      - id: fact-a02
+        statement: 面向客户 IT 与业务团队梳理问题现象与影响范围，转化为研发需求与上线验证项
+        status: confirmed
+        scope: core_execution
+        source: original_resume
+        jd_requirements: [客户交付]
+      - id: fact-a03
+        statement: 定位客户问题共性根因并回写产品需求
+        status: confirmed
+        scope: core_execution
+        source: original_resume
+      - id: fact-a04
+        statement: 维护 API 文档、FAQ 与排障手册
+        status: confirmed
+        scope: support
+        source: original_resume
+      - id: fact-a05
+        statement: 直接参与客户需求调研
+        status: denied
+        scope: support
+        source: user_correction
+        match_terms: [客户需求调研, 需求调研]
+      - id: fact-a06
+        statement: 使用 Python 编写脚本批量校验客户接口连通性与字段口径
+        status: confirmed
+        scope: core_execution
+        source: original_resume
+        jd_requirements: [Python]
+      - id: fact-a07
+        statement: 输出接口接入 SOP，把高频接入问题沉淀为标准排障路径
+        status: confirmed
+        scope: core_execution
+        source: user_note
+      - id: fact-a08
+        statement: 面向客户完成 RESTful 接口字段映射与错误码对齐
+        status: confirmed
+        scope: core_execution
+        source: original_resume
+        jd_requirements: [API 集成]
+
+projects:
+  - id: ai-workbench
+    name: AI 技术支持工作台
+    type: personal_project
+    commercial_delivery: false
+    delivery_status: not_delivered
+    role: 独立开发
+    time_range: 2025-03 ~ 2025-08
+    facts:
+      - id: fact-a51
+        statement: 使用 Python 与 FastAPI 构建个人 AI 技术支持工作台
+        status: confirmed
+        scope: owner
+        source: user_note
+        jd_requirements: [Python, FastAPI]
+      - id: fact-a52
+        statement: 基于 RAG 和 Agent 串联意图识别、查询改写、知识检索和答案生成
+        status: confirmed
+        scope: owner
+        source: user_note
+        jd_requirements: [Agent, RAG]
+      - id: fact-a53
+        statement: 使用 MCP 接入本地知识检索工具，打通文档库
+        status: confirmed
+        scope: owner
+        source: user_note
+        jd_requirements: [MCP]
+  - id: internal-console
+    name: 内部工单系统自动化报表
+    type: internal_tool
+    commercial_delivery: false
+    delivery_status: delivered
+    role: 参与维护
+    facts:
+      - id: fact-a61
+        statement: 参与维护内部工单系统的自动化报表模块
+        status: confirmed
+        scope: support
+        source: original_resume
+
+claims: []

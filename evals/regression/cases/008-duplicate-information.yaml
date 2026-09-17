@@ -1,0 +1,83 @@
+id: "008-duplicate-information"
+title: "个人优势不得与工作经历机械重复"
+priority: P0
+mode: deterministic
+category: content_quality
+metrics:
+  - duplicate_information_rate
+description: |
+  个人优势应给能力结论，工作经历应提供具体 evidence。
+  同一个能力被两条 bullet 用近乎相同的措辞重复描述，属于信息冗余，
+  应 MERGE 或 COMPRESS 为一条更有证据价值的表述。
+
+fact_store:
+  meta:
+    candidate: 测试候选人
+    schema_version: 1
+  experiences:
+    - id: corp-a
+      employer: 某科技有限公司
+      role: 技术服务工程师
+      type: work
+      facts:
+        - id: fact-001
+          statement: 近 5 年聚焦企业客户方案、系统集成和上线验收，累计上线应用 80+
+          status: confirmed
+          scope: core_execution
+          source: original_resume
+        - id: fact-002
+          statement: 面向企业客户梳理接口依赖与鉴权口径，完成 OpenAPI、Webhook 接入与联调上线
+          status: confirmed
+          scope: core_execution
+          source: original_resume
+
+variants:
+  - name: "个人优势与工作经历重复同一表述"
+    expect: fail
+    expect_issues:
+      - RESUME_DUPLICATE_BULLET
+      - CLAIM_DUPLICATE_TEXT
+    resume: |
+      # 孙七
+      手机/微信：13800000000 ｜邮箱：sunqi@example.com
+      ## 个人优势
+      - **ToB 交付**：近 5 年聚焦企业客户方案、系统集成和上线验收，累计上线应用 80+。
+      ## 工作经历
+      ### 某科技有限公司｜技术服务工程师
+      2021-07 ~ 2025-06
+      - **项目交付**：近 5 年聚焦企业客户方案、系统集成和上线验收，累计上线应用 80+。
+      ## 教育背景与认证
+      - 某大学｜计算机科学与技术｜本科｜2017-09 ~ 2021-06
+    claims:
+      - id: claim-001
+        text: 近 5 年聚焦企业客户方案、系统集成和上线验收，累计上线应用 80+
+        evidence: [fact-001]
+        relevance_rank: 1
+      - id: claim-002
+        text: 近 5 年聚焦企业客户方案、系统集成和上线验收，累计上线应用 80+
+        evidence: [fact-001]
+        relevance_rank: 1
+
+  - name: "优势给结论，经历给证据"
+    expect: pass
+    forbid_issues: [RESUME_DUPLICATE_BULLET, CLAIM_DUPLICATE_TEXT]
+    resume: |
+      # 孙七
+      手机/微信：13800000000 ｜邮箱：sunqi@example.com
+      ## 个人优势
+      - **ToB 交付**：近 5 年聚焦企业客户方案、系统集成和上线验收，累计上线应用 80+。
+      ## 工作经历
+      ### 某科技有限公司｜技术服务工程师
+      2021-07 ~ 2025-06
+      - **开放平台接入**：面向企业客户梳理接口依赖与鉴权口径，完成 OpenAPI、Webhook 接入与联调上线。
+      ## 教育背景与认证
+      - 某大学｜计算机科学与技术｜本科｜2017-09 ~ 2021-06
+    claims:
+      - id: claim-001
+        text: 近 5 年聚焦企业客户方案、系统集成和上线验收，累计上线应用 80+
+        evidence: [fact-001]
+        relevance_rank: 1
+      - id: claim-002
+        text: 面向企业客户梳理接口依赖与鉴权口径，完成 OpenAPI、Webhook 接入与联调上线
+        evidence: [fact-002]
+        relevance_rank: 2

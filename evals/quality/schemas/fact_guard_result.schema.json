@@ -1,0 +1,41 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "optimize-resume/evals/quality/schemas/fact_guard_result.schema.json",
+  "title": "Fact Guard Result",
+  "description": "语义层事实安全检查的结构化输出。任何非空列表都意味着该版本不能在这场质量比较中获胜。",
+  "type": "object",
+  "required": [
+    "pass",
+    "unsupported_claims",
+    "fabricated_metrics",
+    "scope_inflations",
+    "project_boundary_violations",
+    "denied_facts_reintroduced",
+    "unknown_facts_asserted",
+    "transferable_as_direct"
+  ],
+  "additionalProperties": false,
+  "definitions": {
+    "finding": {
+      "type": "object",
+      "required": ["quote", "why"],
+      "additionalProperties": false,
+      "properties": {
+        "quote": { "type": "string" },
+        "why": { "type": "string" },
+        "fact_ref": { "type": "string" }
+      }
+    }
+  },
+  "properties": {
+    "pass": { "type": "boolean" },
+    "unsupported_claims": { "type": "array", "items": { "$ref": "#/definitions/finding" } },
+    "fabricated_metrics": { "type": "array", "items": { "$ref": "#/definitions/finding" } },
+    "scope_inflations": { "type": "array", "items": { "$ref": "#/definitions/finding" } },
+    "project_boundary_violations": { "type": "array", "items": { "$ref": "#/definitions/finding" } },
+    "denied_facts_reintroduced": { "type": "array", "items": { "$ref": "#/definitions/finding" } },
+    "unknown_facts_asserted": { "type": "array", "items": { "$ref": "#/definitions/finding" } },
+    "transferable_as_direct": { "type": "array", "items": { "$ref": "#/definitions/finding" } },
+    "notes": { "type": "string" }
+  }
+}

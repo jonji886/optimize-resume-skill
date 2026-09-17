@@ -1,0 +1,109 @@
+# persona-d：应用开发工程师（Python / Agent 方向）
+#
+# ground truth fact store。关键边界：
+#   - Kubernetes 为 unknown；
+#   - 「主导架构选型 / 技术方案评审」为 denied（实际是参与讨论，不是决策者）。
+meta:
+  candidate: 赵六
+  target_role: 应用开发工程师
+  schema_version: 1
+
+jd:
+  title: 应用开发工程师
+  core_requirements:
+    - Python
+    - Agent
+    - RAG
+  ats_keywords:
+    - Python
+    - FastAPI
+    - LangChain
+    - RAG
+    - Agent
+
+experiences:
+  - id: corp-dev
+    employer: 某互联网公司
+    role: 后端开发工程师
+    type: work
+    time_range: 2020-07 ~ 2025-06
+    facts:
+      - id: fact-d01
+        statement: 使用 Python 与 FastAPI 开发企业内部工单流转服务
+        status: confirmed
+        scope: core_execution
+        source: original_resume
+        jd_requirements: [Python, FastAPI]
+      - id: fact-d02
+        statement: 设计并实现基于 RAG 的知识检索接口，接入内部知识库
+        status: confirmed
+        scope: core_execution
+        source: original_resume
+        jd_requirements: [RAG]
+      - id: fact-d03
+        statement: 使用 LangChain 编排 Agent 工作流，串联工具调用与结果校验
+        status: confirmed
+        scope: core_execution
+        source: original_resume
+        jd_requirements: [Agent, LangChain]
+      - id: fact-d04
+        statement: 编写单元测试与接口回归测试，保障版本发布质量
+        status: confirmed
+        scope: core_execution
+        source: original_resume
+      - id: fact-d05
+        statement: 熟悉 Kubernetes 生产环境运维
+        status: unknown
+        source: original_resume
+      - id: fact-d06
+        statement: 主导后端架构选型与技术方案评审
+        status: denied
+        source: user_correction
+        match_terms: [架构选型, 技术方案评审, 主导架构]
+      - id: fact-d07
+        statement: 对接第三方大模型 API，处理限流、重试与降级
+        status: confirmed
+        scope: core_execution
+        source: original_resume
+        jd_requirements: [大模型 API]
+      - id: fact-d08
+        statement: 完成 2 个内部系统的接口联调与上线
+        status: confirmed
+        scope: core_execution
+        source: original_resume
+        numbers: ["2"]
+      - id: fact-d09
+        statement: 参与代码评审与线上问题排查，输出复盘文档
+        status: confirmed
+        scope: core_execution
+        source: original_resume
+      - id: fact-d10
+        statement: 与产品、测试协作澄清需求边界并拆解迭代任务
+        status: confirmed
+        scope: core_execution
+        source: original_resume
+        jd_requirements: [需求澄清]
+
+projects:
+  - id: agent-eval-harness
+    name: Agent 效果评测脚本
+    type: personal_project
+    commercial_delivery: false
+    delivery_status: not_delivered
+    role: 独立开发
+    time_range: 2025-03 ~ 2025-08
+    facts:
+      - id: fact-d51
+        statement: 搭建个人 Agent 效果评测脚本，用测试集校验回答边界
+        status: confirmed
+        scope: owner
+        source: user_note
+        jd_requirements: [评测]
+      - id: fact-d52
+        statement: 使用 MCP 协议接入本地文件与检索工具
+        status: confirmed
+        scope: owner
+        source: user_note
+        jd_requirements: [MCP]
+
+claims: []

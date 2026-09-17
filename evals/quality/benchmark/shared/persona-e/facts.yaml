@@ -1,0 +1,97 @@
+# persona-e：实施 / 交付工程师（私有化部署方向）
+#
+# ground truth fact store。关键边界：
+#   - 「数据库调优 / 高可用架构设计」为 denied；
+#   - Docker/K8s 容器化为 transferable（做过，但不是生产架构负责人）。
+meta:
+  candidate: 孙七
+  target_role: 实施工程师
+  schema_version: 1
+
+jd:
+  title: 实施工程师
+  core_requirements:
+    - 实施交付
+    - 上线割接
+    - 客户支持
+  ats_keywords:
+    - Docker
+    - Python
+    - 部署
+
+experiences:
+  - id: corp-impl
+    employer: 某软件公司
+    role: 实施工程师
+    type: work
+    time_range: 2019-07 ~ 2025-06
+    facts:
+      - id: fact-e01
+        statement: 负责客户现场的私有化部署、环境初始化与上线割接
+        status: confirmed
+        scope: core_execution
+        source: original_resume
+        jd_requirements: [实施交付, 上线割接, 部署]
+      - id: fact-e02
+        statement: 面向客户运维团队完成系统操作培训与知识转移
+        status: confirmed
+        scope: core_execution
+        source: original_resume
+        jd_requirements: [培训]
+      - id: fact-e03
+        statement: 编写部署手册与常见故障处理指引
+        status: confirmed
+        scope: core_execution
+        source: original_resume
+      - id: fact-e04
+        statement: 使用 Shell 与 Python 编写部署与巡检自动化脚本
+        status: confirmed
+        scope: core_execution
+        source: original_resume
+        jd_requirements: [Python, Shell]
+      - id: fact-e05
+        statement: 负责数据库调优与高可用架构设计
+        status: denied
+        source: user_correction
+        match_terms: [数据库调优, 高可用架构, 高可用设计]
+      - id: fact-e06
+        statement: 处理上线后的问题跟踪与版本升级支持，累计支持 30+ 客户环境
+        status: confirmed
+        scope: core_execution
+        source: original_resume
+        numbers: ["30"]
+        jd_requirements: [客户支持]
+      - id: fact-e07
+        statement: 具备 Docker 与容器化部署经验，但未负责生产集群架构设计
+        status: transferable
+        scope: core_execution
+        source: user_confirmation
+        jd_requirements: [Docker, 容器化]
+      - id: fact-e08
+        statement: 梳理客户网络与权限约束，输出部署前置条件清单
+        status: confirmed
+        scope: core_execution
+        source: original_resume
+        jd_requirements: [实施交付]
+      - id: fact-e09
+        statement: 协同研发定位现场版本问题并推动补丁验证
+        status: confirmed
+        scope: core_execution
+        source: original_resume
+        jd_requirements: [客户支持]
+
+projects:
+  - id: migration-scripts
+    name: 内部数据迁移脚本
+    type: internal_tool
+    commercial_delivery: false
+    delivery_status: delivered
+    role: 独立开发
+    facts:
+      - id: fact-e51
+        statement: 开发内部数据迁移脚本，用于历史数据搬运与一致性校验
+        status: confirmed
+        scope: owner
+        source: user_note
+
+claims: []

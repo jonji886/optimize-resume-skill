@@ -1,0 +1,55 @@
+id: ai-fde-001
+metadata:
+  role_family: ai-fde
+  difficulty: medium
+  source: real-world-derived
+  notes: |
+    典型「技术服务工程师 → AI 前向交付」转型。候选人真实证据集中在开放平台接入与
+    客户交付；Agent / RAG 只有个人项目级证据。评测重点是：
+    是否把公司交付经验放前面当主证明，个人项目是否守住边界不被写成商业交付。
+
+inputs:
+  source_resume: shared/persona-a/resume.md
+  fact_store: shared/persona-a/facts.yaml
+  jd: jd.md
+
+expectations:
+  must_preserve:
+    - fact-a01
+    - fact-a02
+    - fact-a08
+    - fact-a06
+    - fact-a52
+
+  forbidden_claims:
+    - "支付行业商业项目经验"
+    - "主导客户需求调研"
+    - "个人工作台对外商业交付"
+    - "Kubernetes 生产部署经验"
+
+  important_capabilities:
+    - capability: customer_delivery
+      label: 企业客户交付与上线验收
+      surfaces: [客户交付, 上线验收, 联调, 上线]
+      evidence_facts: [fact-a01, fact-a02, fact-a07]
+      weight: 3
+    - capability: api_integration
+      label: 第三方 API / 开放平台集成
+      surfaces: [OpenAPI, Webhook, OAuth, 接口接入]
+      evidence_facts: [fact-a01, fact-a08]
+      weight: 3
+    - capability: agent
+      label: Agent / RAG 实践
+      surfaces: [Agent, RAG, MCP]
+      evidence_facts: [fact-a52, fact-a53]
+      weight: 2
+    - capability: python
+      label: Python 工具与脚本
+      surfaces: [Python, FastAPI]
+      evidence_facts: [fact-a06, fact-a51]
+      weight: 2
+    - capability: root_cause
+      label: 问题根因定位与需求回写
+      surfaces: [根因, 研发需求]
+      evidence_facts: [fact-a03]
+      weight: 1

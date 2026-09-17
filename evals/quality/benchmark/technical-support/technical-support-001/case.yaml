@@ -1,0 +1,52 @@
+id: technical-support-001
+metadata:
+  role_family: technical-support
+  difficulty: easy
+  source: real-world
+  notes: |
+    相对容易的匹配场景：候选人的事实与 JD 高度重合，主要考「表达效率」——
+    是否把工单闭环、排障手册、培训这些高相关证据前置，而不是平均铺开。
+
+inputs:
+  source_resume: shared/persona-b/resume.md
+  fact_store: shared/persona-b/facts.yaml
+  jd: jd.md
+
+expectations:
+  must_preserve:
+    - fact-b01
+    - fact-b05
+    - fact-b03
+    - fact-b02
+
+  forbidden_claims:
+    - "提升客户续约率与满意度"
+    - "主导客户经营与续约策略"
+    - "负责 SLA 体系设计"
+
+  important_capabilities:
+    - capability: api_sdk_support
+      label: API / SDK 接入支持
+      surfaces: [API, SDK, 接入, 联调]
+      evidence_facts: [fact-b01]
+      weight: 3
+    - capability: ticket_sla
+      label: 工单处理与 SLA 闭环
+      surfaces: [工单, SLA, 升级]
+      evidence_facts: [fact-b05]
+      weight: 3
+    - capability: troubleshooting_docs
+      label: 排障与知识库沉淀
+      surfaces: [排障手册, 知识库, 高频问题]
+      evidence_facts: [fact-b03, fact-b10]
+      weight: 3
+    - capability: customer_training
+      label: 客户培训与沟通
+      surfaces: [培训, 最佳实践]
+      evidence_facts: [fact-b09]
+      weight: 2
+    - capability: python_script
+      label: Python 数据统计
+      surfaces: [Python, 脚本, 统计]
+      evidence_facts: [fact-b08]
+      weight: 1

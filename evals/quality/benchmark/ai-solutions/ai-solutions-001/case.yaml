@@ -1,0 +1,54 @@
+id: ai-solutions-001
+metadata:
+  role_family: ai-solutions
+  difficulty: medium
+  source: real-world-derived
+  notes: |
+    JD 与 ai-fde-001 接近但重心偏移到「方案输出与原型验证」。
+    同一套事实下，好的版本应该把「接口方案口径对齐 + SOP 沉淀」提到前台，
+    而不是整篇重复讲客户交付流程。
+
+inputs:
+  source_resume: shared/persona-a/resume.md
+  fact_store: shared/persona-a/facts.yaml
+  jd: jd.md
+
+expectations:
+  must_preserve:
+    - fact-a01
+    - fact-a08
+    - fact-a07
+    - fact-a06
+    - fact-a52
+
+  forbidden_claims:
+    - "主导客户需求调研"
+    - "交付过商业化 AI 产品"
+    - "企业级高可用架构设计经验"
+
+  important_capabilities:
+    - capability: solution_design
+      label: 面向客户输出解决方案与接口方案
+      surfaces: [接口方案, 方案, 鉴权, 字段口径]
+      evidence_facts: [fact-a08, fact-a01]
+      weight: 3
+    - capability: api_integration
+      label: 开放平台集成
+      surfaces: [OpenAPI, Webhook, OAuth]
+      evidence_facts: [fact-a01, fact-a08]
+      weight: 3
+    - capability: prototype_python
+      label: Python 原型与验证
+      surfaces: [Python, FastAPI, 脚本]
+      evidence_facts: [fact-a06, fact-a51]
+      weight: 2
+    - capability: agent
+      label: Agent / RAG 实践
+      surfaces: [Agent, RAG, MCP]
+      evidence_facts: [fact-a52, fact-a53]
+      weight: 2
+    - capability: reuse_assets
+      label: 方案与交付资产复用
+      surfaces: [SOP, 模板, 手册]
+      evidence_facts: [fact-a07, fact-a04]
+      weight: 2

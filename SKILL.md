@@ -211,6 +211,37 @@ denied         → 禁止生成，且不得在后续版本重新引入
 6. 参与层级、日期、工作年限与 Fact Store 一致；
 7. 最终文件无 TODO、scope 注释或其他内部标记。
 
+## 与 Eval 的边界
+
+正常优化简历时，只执行本文件描述的两道 deterministic 门禁：
+
+~~~text
+步骤 7   validate_claims.py   事实安全
+步骤 10  lint_resume.py       输出格式
+~~~
+
+这两者构成 Runtime Guard：轻量、确定性、可自动运行。**不要**在正常生成流程中调用
+LLM Judge 或 Quality Benchmark——那会带来成本、延迟与 reward hacking 风险。
+
+Quality Benchmark（`evals/quality/`）属于 development / release 评测，回答的是
+「新版本 Skill 是否比旧版本生成了更好的简历」，由人工或 CI 显式触发：
+
+- 需要对比两个 Skill 版本的产出时使用；
+- 需要排查某个 case 为什么退化时使用；
+- 不要在每次交付简历时运行。
+
+可选的 shadow eval（默认关闭，只有用户明确要求、或 Skill 自身开发调试时才使用）：
+在产出简历之后追加一次事实安全复核，用
+`python3 evals/quality/run_quality.py --case <case-id> --dry-run` 检查 Judge 输入是否干净、
+A/B 顺序是否镜像，或用 `--semantic-fact-guard` 补一次语义层事实安全检查。
+它不是交付流程的一部分，也不产出「简历得分」。
+
+修改 `SKILL.md` / `references/` / `scripts/` 之后，改动的验收方式是：
+
+~~~bash
+python3 evals/regression/run_regression.py   # 不能有回退，目标 100% 通过
+~~~
+
 ## 最终回复
 
 提供目标文件的可点击路径，并简要说明：

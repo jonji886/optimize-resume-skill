@@ -1,0 +1,63 @@
+id: "011-claim-without-evidence"
+title: "事实性 claim 必须有 evidence"
+priority: P0
+mode: deterministic
+category: safety
+metrics:
+  - unsupported_claim_rate
+  - fact_fidelity
+description: |
+  No evidence → no factual claim。
+  纯表达优化（例如把「技术服务」改写为「面向企业客户的技术交付与实施支持」）
+  不需要 fact id；但一旦出现数字、职责层级或结果断言，就必须能追溯到 fact。
+
+fact_store:
+  meta:
+    candidate: 测试候选人
+    schema_version: 1
+  experiences:
+    - id: corp-a
+      employer: 某企业服务公司
+      role: 技术服务工程师
+      type: work
+      facts:
+        - id: fact-001
+          statement: 负责多个企业客户 API 对接
+          status: confirmed
+          scope: core_execution
+          source: original_resume
+
+variants:
+  - name: "结果断言没有 evidence"
+    expect: fail
+    expect_issues:
+      - CLAIM_WITHOUT_EVIDENCE
+      - UNSUPPORTED_NUMBER
+    claims:
+      - id: claim-001
+        text: 负责客户交付流程优化，覆盖 30+ 企业客户
+        evidence: []
+
+  - name: "引用不存在的 fact id"
+    expect: fail
+    expect_issues:
+      - CLAIM_MISSING_FACT_REF
+      - CLAIM_WITHOUT_EVIDENCE
+    claims:
+      - id: claim-001
+        text: 负责多个企业客户 API 对接
+        evidence: [fact-999]
+
+  - name: "纯表达优化不需要 fact id"
+    expect: pass
+    claims:
+      - id: claim-001
+        text: 面向企业客户的技术交付与实施支持
+        evidence: []
+
+  - name: "有 evidence 的职责表述"
+    expect: pass
+    claims:
+      - id: claim-001
+        text: 负责多个企业客户 API 对接
+        evidence: [fact-001]

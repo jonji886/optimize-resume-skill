@@ -1,0 +1,59 @@
+id: ai-delivery-001
+metadata:
+  role_family: ai-delivery
+  difficulty: medium
+  source: real-world-derived
+  notes: |
+    「AI 交付」是岗位名里的 AI 属性，但 JD 的核心要求其实是通用交付能力。
+    这里考的是：好的版本不会为了贴 AI 标签把个人 Dify 项目当成主要证据，
+    而是让真实的客户交付事实承担证明责任，个人项目只做补充。
+
+inputs:
+  source_resume: shared/persona-b/resume.md
+  fact_store: shared/persona-b/facts.yaml
+  jd: jd.md
+
+expectations:
+  must_preserve:
+    - fact-b01
+    - fact-b02
+    - fact-b05
+    - fact-b09
+    - fact-b10
+
+  forbidden_claims:
+    - "有 3 年以上 AI / 大模型产品交付经验"
+    - "提升客户续约率与满意度"
+    - "知识库问答机器人已在客户生产环境交付"
+
+  important_capabilities:
+    - capability: onboarding_delivery
+      label: 客户接入配置与上线验收
+      surfaces: [接入, 配置, 上线验收]
+      evidence_facts: [fact-b01]
+      weight: 3
+    - capability: requirement_clarify
+      label: 需求澄清与验证项拆解
+      surfaces: [需求澄清, 业务流程, 验证]
+      evidence_facts: [fact-b02]
+      weight: 3
+    - capability: ticket_sla
+      label: 工单与 SLA 闭环
+      surfaces: [工单, SLA]
+      evidence_facts: [fact-b05]
+      weight: 3
+    - capability: enablement
+      label: 客户培训与知识库沉淀
+      surfaces: [培训, 最佳实践, 知识库]
+      evidence_facts: [fact-b09, fact-b10]
+      weight: 3
+    - capability: python_script
+      label: 数据统计脚本
+      surfaces: [Python, 统计]
+      evidence_facts: [fact-b08]
+      weight: 1
+    - capability: transferable_cs
+      label: 客户成功方向的可迁移能力
+      surfaces: [可迁移, 客户成功]
+      evidence_facts: [fact-b07]
+      weight: 1
