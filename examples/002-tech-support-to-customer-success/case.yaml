@@ -1,0 +1,37 @@
+name: "002-tech-support-to-customer-success"
+description: |
+  技术支持 → 客户成功方向。
+  关键边界：denied 的「续约率 / 客户满意度」不得复活；
+  客户交付经验只能作为可迁移能力表达，不得写成客户成功直接经验。
+
+expect: pass
+
+forbid_issues:
+  - JD_CORE_REQUIREMENT_UNCOVERED
+  - ATS_KEYWORD_MISSING
+  - ATS_KEYWORD_UNSUPPORTED
+  - UNSUPPORTED_NUMBER
+  - SCOPE_INFLATION
+  - SCOPE_OVERREACH
+  - TRANSFERABLE_AS_DIRECT
+  - DENIED_TERM_REAPPEARS
+  - CLAIM_REFERENCES_DENIED_FACT
+  - CLAIM_REFERENCES_UNKNOWN_FACT
+  - RESUME_DUPLICATE_BULLET
+  - CLAIM_DUPLICATE_TEXT
+  - RECRUITER_SALIENCE_MISSING
+  - RESUME_PLACEHOLDER
+
+jd: |
+  客户成功经理（SaaS）
+
+  职责：
+  - 负责 SaaS 客户上线验收与交付闭环
+  - 面向客户 IT 与业务团队完成需求澄清
+  - 负责客户使用问题跟进与价值落地
+
+  要求：
+  - 有企业客户交付与上线验收经验
+  - 具备需求澄清与业务流程梳理能力
+  - 熟悉 API / SDK 接入类 SaaS 产品
+  - 有客户成功经验优先

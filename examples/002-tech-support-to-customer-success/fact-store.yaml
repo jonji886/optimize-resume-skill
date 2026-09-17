@@ -1,0 +1,89 @@
+meta:
+  candidate: 李四
+  target_role: 客户成功经理
+  resume_file: 李四-客户成功经理.md
+  schema_version: 1
+
+jd:
+  title: 客户成功经理
+  seniority: 中级
+  industry: SaaS
+  core_requirements:
+    - 客户交付
+    - 上线验收
+    - 需求澄清
+  ats_keywords:
+    - SaaS
+    - API
+    - SDK
+    - 上线验收
+    - 需求澄清
+
+experiences:
+  - id: corp-a
+    employer: 某企业服务公司
+    role: 技术服务工程师
+    type: work
+    time_range: 2021-07 ~ 2025-06
+    facts:
+      - id: fact-001
+        statement: 负责企业客户 SaaS 产品 API/SDK 接入、联调与上线验收
+        status: confirmed
+        scope: core_execution
+        source: original_resume
+        jd_requirements: [客户交付, 上线验收, API, SDK, SaaS]
+      - id: fact-002
+        statement: 面向客户 IT 与业务团队完成需求澄清与业务流程梳理
+        status: confirmed
+        scope: core_execution
+        source: original_resume
+        jd_requirements: [需求澄清]
+      - id: fact-003
+        statement: 提升客户续约率和满意度
+        status: denied
+        scope: unspecified
+        source: user_correction
+        match_terms: [续约率, 客户满意度, 续约, 满意度]
+      - id: fact-004
+        statement: 定位 KA 客户日常使用问题，输出排障手册
+        status: confirmed
+        scope: core_execution
+        source: original_resume
+      - id: fact-005
+        statement: 具备企业客户交付与上线验收经验，但职责不包含续约与客户经营
+        status: transferable
+        scope: core_execution
+        source: user_confirmation
+        jd_requirements: [客户成功]
+
+claims:
+  - id: claim-001
+    text: 负责企业客户 SaaS 产品接入、联调与上线验收
+    evidence: [fact-001]
+    claim_type: direct
+    relevance_rank: 1
+    location: 个人优势/第 1 条
+  - id: claim-002
+    text: 面向客户 IT 与业务团队完成需求澄清与业务流程梳理
+    evidence: [fact-002]
+    claim_type: direct
+    relevance_rank: 2
+    location: 个人优势/第 2 条
+  - id: claim-003
+    text: 具备企业客户交付与上线验收经验，可迁移至客户成功场景
+    evidence: [fact-005]
+    claim_type: transferable
+    relevance_rank: 3
+    location: 个人优势/第 3 条
+  - id: claim-004
+    text: 面向企业客户完成 API/SDK 接入、字段口径对齐、联调与上线验收
+    evidence: [fact-001]
+    claim_type: direct
+    relevance_rank: 1
+    location: 工作经历/第 1 条
+  - id: claim-005
+    text: 定位 KA 客户日常使用问题，输出排障手册
+    evidence: [fact-004]
+    claim_type: direct
+    relevance_rank: 4
+    location: 工作经历/第 2 条

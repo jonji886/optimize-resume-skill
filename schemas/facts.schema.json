@@ -1,0 +1,175 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "optimize-resume/schemas/facts.schema.json",
+  "title": "Optimize Resume Fact Store",
+  "description": "Evidence-grounded 事实账本。Facts 与 Resume Presentation 分离：简历中任何事实性 Claim 都必须能追溯到这里的 fact id。",
+  "type": "object",
+  "required": ["meta", "claims"],
+  "additionalProperties": false,
+  "properties": {
+    "meta": { "$ref": "#/definitions/meta" },
+    "jd": { "$ref": "#/definitions/jd" },
+    "experiences": {
+      "type": "array",
+      "description": "工作 / 实习 / 外包等雇佣关系",
+      "items": { "$ref": "#/definitions/experience" }
+    },
+    "projects": {
+      "type": "array",
+      "description": "项目。type 决定事实边界，不可在改写中升级。",
+      "items": { "$ref": "#/definitions/project" }
+    },
+    "claims": {
+      "type": "array",
+      "description": "简历中实际出现的每一条事实性表述，及其 Evidence 追溯。",
+      "items": { "$ref": "#/definitions/claim" }
+    }
+  },
+  "definitions": {
+    "meta": {
+      "type": "object",
+      "required": ["candidate"],
+      "additionalProperties": false,
+      "properties": {
+        "candidate": { "type": "string", "minLength": 1, "description": "候选人姓名" },
+        "target_role": { "type": "string", "description": "目标岗位名称，与简历文件名一致的岗位部分" },
+        "resume_file": { "type": "string", "description": "对应简历文件相对路径" },
+        "schema_version": { "const": 1 },
+        "updated_at": { "type": "string" },
+        "notes": { "type": "string" }
+      }
+    },
+    "jd": {
+      "type": "object",
+      "description": "目标 JD 的可检查子集。只放需要做覆盖度/ATS 校验的词条。",
+      "additionalProperties": false,
+      "properties": {
+        "title": { "type": "string" },
+        "seniority": { "type": "string" },
+        "industry": { "type": "string" },
+        "core_requirements": {
+          "type": "array",
+          "description": "JD 最核心要求（通常 3–5 条）。有事实支持但简历未体现 → 报错。",
+          "items": { "type": "string" }
+        },
+        "ats_keywords": {
+          "type": "array",
+          "description": "JD 中需要被 ATS 检索到的真实技术/产品/职责名词。",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "experience": {
+      "type": "object",
+      "required": ["id", "employer", "role", "facts"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "$ref": "#/definitions/entityId" },
+        "employer": { "type": "string", "minLength": 1 },
+        "role": { "type": "string", "minLength": 1 },
+        "type": { "enum": ["work", "internship", "freelance", "contract"] },
+        "time_range": { "type": "string" },
+        "facts": { "type": "array", "items": { "$ref": "#/definitions/fact" } }
+      }
+    },
+    "project": {
+      "type": "object",
+      "required": ["id", "name", "type", "facts"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "$ref": "#/definitions/entityId" },
+        "name": { "type": "string", "minLength": 1 },
+        "type": {
+          "enum": ["work_project", "personal_project", "internal_tool", "demo", "open_source"],
+          "description": "work_project = 在职期间为公司交付的项目；其余类型不得表述为公司项目或商业交付"
+        },
+        "commercial_delivery": {
+          "type": "boolean",
+          "description": "是否真的对外商业交付。personal_project / demo / open_source 默认 false"
+        },
+        "delivery_status": {
+          "enum": ["delivered", "in_progress", "not_delivered", "unknown"]
+        },
+        "role": { "type": "string" },
+        "time_range": { "type": "string" },
+        "facts": { "type": "array", "items": { "$ref": "#/definitions/fact" } }
+      }
+    },
+    "fact": {
+      "type": "object",
+      "required": ["id", "statement", "status", "source"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "$ref": "#/definitions/entityId" },
+        "statement": { "type": "string", "minLength": 1, "description": "事实原样陈述，不加修饰" },
+        "status": {
+          "enum": ["confirmed", "denied", "unknown", "transferable"],
+          "description": "confirmed=可直接写；transferable=只可写可迁移；unknown=禁止生成 claim；denied=禁止生成且不得再次引入"
+        },
+        "scope": {
+          "enum": ["owner", "lead", "core_execution", "support", "unspecified"],
+          "description": "实际参与层级。claim 使用的动词级别不得高于此值。"
+        },
+        "source": {
+          "enum": ["original_resume", "user_confirmation", "user_correction", "user_note", "inferred"],
+          "description": "事实来源。inferred 只允许配合 unknown/transferable，不得作为 confirmed 依据。"
+        },
+        "confidence": { "enum": ["high", "medium", "low"] },
+        "numbers": {
+          "type": "array",
+          "description": "该事实确认存在的数字。缺省时由 statement 自动抽取。",
+          "items": { "type": "string" }
+        },
+        "match_terms": {
+          "type": "array",
+          "description": "denied fact 专用：禁止在 claim 中重新出现的表述。",
+          "items": { "type": "string" }
+        },
+        "entity": { "type": "string", "description": "涉及对象，如某客户、某系统" },
+        "time_range": { "type": "string" },
+        "jd_requirements": {
+          "type": "array",
+          "description": "该事实能支撑的 JD 核心要求（与 jd.core_requirements 词条对齐）。",
+          "items": { "type": "string" }
+        },
+        "note": { "type": "string" }
+      }
+    },
+    "claim": {
+      "type": "object",
+      "required": ["id", "text", "evidence"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "$ref": "#/definitions/entityId" },
+        "text": { "type": "string", "minLength": 1, "description": "简历中实际出现的表述（可含 **关键字**：前缀）" },
+        "evidence": {
+          "type": "array",
+          "description": "支撑该 claim 的 fact id。纯表达优化可用空数组。",
+          "items": { "$ref": "#/definitions/entityId" }
+        },
+        "location": { "type": "string", "description": "如 工作经历/群核/第 2 条" },
+        "claim_type": {
+          "enum": ["direct", "transferable"],
+          "default": "direct",
+          "description": "transferable 表示这是可迁移能力表达，不得写成直接经验"
+        },
+        "relevance_rank": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5,
+          "description": "对目标 JD 的重要性，1 最高。用于 Recruiter Salience 检查。"
+        },
+        "numbers": {
+          "type": "array",
+          "description": "claim 中出现的数字。缺省时由 text 自动抽取。",
+          "items": { "type": "string" }
+        },
+        "note": { "type": "string" }
+      }
+    },
+    "entityId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+    }
+  }
+}

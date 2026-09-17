@@ -1,0 +1,40 @@
+name: "001-ai-solution-engineer"
+description: |
+  技术服务工程师 → AI 解决方案工程师。
+  原始事实包含 OpenAPI/Webhook 接入（直接匹配）和个人 AI 工作台（个人项目）。
+  关键边界：个人项目不得写成公司商业交付；denied 的「客户需求调研」不得复活。
+
+expect: pass
+
+forbid_issues:
+  - JD_CORE_REQUIREMENT_UNCOVERED
+  - ATS_KEYWORD_MISSING
+  - ATS_KEYWORD_UNSUPPORTED
+  - UNSUPPORTED_NUMBER
+  - SCOPE_INFLATION
+  - SCOPE_OVERREACH
+  - TRANSFERABLE_AS_DIRECT
+  - PROJECT_BOUNDARY_VIOLATION
+  - PROJECT_TYPE_MISMATCH
+  - PROJECT_DELIVERY_MISMATCH
+  - DENIED_TERM_REAPPEARS
+  - CLAIM_REFERENCES_DENIED_FACT
+  - CLAIM_REFERENCES_UNKNOWN_FACT
+  - RESUME_DUPLICATE_BULLET
+  - CLAIM_DUPLICATE_TEXT
+  - RECRUITER_SALIENCE_MISSING
+  - RESUME_PLACEHOLDER
+
+jd: |
+  AI 解决方案工程师
+
+  职责：
+  - 面向企业客户交付 AI Agent 解决方案，负责方案设计到上线验证
+  - 负责第三方系统 API 集成与接口对接
+  - 使用 Python 构建原型、工具与效果评测脚本
+
+  要求：
+  - 熟悉 Agent、RAG、Prompt 工程
+  - 有 OpenAPI / Webhook 集成经验
+  - 有企业客户需求拆解与交付经验
+  - 熟悉 Python 与 FastAPI

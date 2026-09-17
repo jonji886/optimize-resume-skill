@@ -1,0 +1,93 @@
+meta:
+  candidate: 王五
+  target_role: 售前解决方案工程师
+  resume_file: 王五-售前解决方案工程师.md
+  schema_version: 1
+
+jd:
+  title: 售前解决方案工程师
+  seniority: 中级
+  industry: 企业服务
+  core_requirements:
+    - 方案设计
+    - 技术交流
+    - POC
+    - Kubernetes
+  ats_keywords:
+    - POC
+    - 解决方案
+
+experiences:
+  - id: corp-presales
+    employer: 某科技有限公司
+    role: 售前解决方案工程师
+    type: work
+    time_range: 2021-07 ~ 2025-06
+    facts:
+      - id: fact-001
+        statement: 面向客户业务与 IT 团队开展技术交流与需求挖掘
+        status: confirmed
+        scope: core_execution
+        source: original_resume
+        jd_requirements: [技术交流]
+      - id: fact-002
+        statement: 针对客户业务场景输出解决方案并完成产品演示与宣讲
+        status: confirmed
+        scope: core_execution
+        source: original_resume
+        jd_requirements: [方案设计, 解决方案]
+      - id: fact-003
+        statement: 主导 3 个 POC 项目从立项到验收
+        status: confirmed
+        scope: lead
+        source: original_resume
+        numbers: ["3"]
+        jd_requirements: [POC]
+      - id: fact-004
+        statement: 与销售同行拜访客户，梳理业务痛点并转化为方案输入
+        status: confirmed
+        scope: core_execution
+        source: original_resume
+        jd_requirements: [技术交流]
+      - id: fact-005
+        statement: Kubernetes 有实际部署经验
+        status: unknown
+        source: original_resume
+
+claims:
+  - id: claim-001
+    text: 面向企业客户输出行业解决方案并完成产品演示
+    evidence: [fact-002]
+    claim_type: direct
+    relevance_rank: 1
+    location: 个人优势/第 1 条
+  - id: claim-002
+    text: 面向客户业务与 IT 团队开展技术交流与需求挖掘
+    evidence: [fact-001]
+    claim_type: direct
+    relevance_rank: 2
+    location: 个人优势/第 2 条
+  - id: claim-003
+    text: 主导 3 个 POC 项目从立项到验收
+    evidence: [fact-003]
+    claim_type: direct
+    relevance_rank: 1
+    location: 个人优势/第 3 条
+  - id: claim-004
+    text: 针对客户业务场景输出解决方案并完成产品演示与宣讲
+    evidence: [fact-002]
+    claim_type: direct
+    relevance_rank: 1
+    location: 工作经历/第 1 条
+  - id: claim-005
+    text: 与销售同行拜访客户，梳理业务痛点并转化为方案输入
+    evidence: [fact-004]
+    claim_type: direct
+    relevance_rank: 2
+    location: 工作经历/第 2 条
+  - id: claim-006
+    text: 主导 3 个 POC 从立项、方案验证到验收，串联产品与研发资源
+    evidence: [fact-003]
+    claim_type: direct
+    relevance_rank: 3
+    location: 工作经历/第 3 条

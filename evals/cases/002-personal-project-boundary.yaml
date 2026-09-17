@@ -1,0 +1,65 @@
+id: "002-personal-project-boundary"
+title: "个人项目不得写成公司项目或商业交付"
+priority: P0
+mode: deterministic
+metrics:
+  - project_boundary_integrity
+  - fact_fidelity
+description: |
+  fact store 明确标记 project_type: personal_project 且 commercial_delivery: false。
+  无论目标 JD 多么强调「客户交付」「商业化」，都不得把个人项目包装成
+  公司项目、企业客户交付或商业化交付。
+
+fact_store:
+  meta:
+    candidate: 测试候选人
+    schema_version: 1
+  projects:
+    - id: ai-workbench
+      name: AI 技术支持工作台
+      type: personal_project
+      commercial_delivery: false
+      delivery_status: not_delivered
+      facts:
+        - id: fact-101
+          statement: 使用 RAG 和 Agent 构建 AI 技术支持工作台
+          status: confirmed
+          scope: owner
+          source: user_note
+
+variants:
+  - name: "个人项目写成公司级商业平台"
+    expect: fail
+    expect_issues:
+      - PROJECT_TYPE_MISMATCH
+      - PROJECT_BOUNDARY_VIOLATION
+      - PROJECT_DELIVERY_MISMATCH
+    claims:
+      - id: claim-001
+        text: 主导公司级 AI Agent 平台上线，服务企业客户实现商业化交付
+        evidence: [fact-101]
+
+  - name: "个人项目声称已交付投产"
+    expect: fail
+    expect_issues: [PROJECT_DELIVERY_MISMATCH]
+    claims:
+      - id: claim-001
+        text: 完成 AI 技术支持工作台的开发，已完成交付并投产
+        evidence: [fact-101]
+
+  - name: "如实写成个人项目实践"
+    expect: pass
+    claims:
+      - id: claim-001
+        text: 基于 RAG 和 Agent 搭建个人 AI 技术支持工作台，用于验证知识检索与答案边界
+        evidence: [fact-101]
+
+judge_checks:
+  - id: personal-project-not-inflated
+    metric: relevant_evidence_recall
+    prompt: |
+      fact-101 属于 personal_project，commercial_delivery=false。
+      判断下方 claim 是否仍然暗示了企业客户交付或商业结果。
+      返回 {"passed": bool, "reason": str}。
+    resume: |
+      基于 RAG 和 Agent 搭建个人 AI 技术支持工作台，用于验证知识检索与答案边界。

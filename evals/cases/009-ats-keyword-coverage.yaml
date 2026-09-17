@@ -1,0 +1,106 @@
+id: "009-ats-keyword-coverage"
+title: "ATS 关键词覆盖与关键词堆砌双向约束"
+priority: P1
+mode: deterministic
+metrics:
+  - ats_keyword_coverage
+description: |
+  ATS 关键词必须双向检查：
+  1. 事实支持但简历完全缺失 → ATS_KEYWORD_MISSING（覆盖不足）
+  2. 简历出现但没有任何事实支持 → ATS_KEYWORD_UNSUPPORTED（关键词堆砌）
+  两者都是 warning 级：它们影响可检索性，但不属于事实安全违规。
+
+fact_store:
+  meta:
+    candidate: 测试候选人
+    schema_version: 1
+  jd:
+    title: AI 解决方案工程师
+    core_requirements:
+      - Agent
+    ats_keywords:
+      - Python
+      - FastAPI
+      - Agent
+      - OpenAPI
+      - Kubernetes
+  experiences:
+    - id: corp-a
+      employer: 某科技有限公司
+      role: 技术服务工程师
+      type: work
+      facts:
+        - id: fact-001
+          statement: 负责多个企业客户 OpenAPI 接入与上线
+          status: confirmed
+          scope: core_execution
+          source: original_resume
+        - id: fact-101
+          statement: 使用 Python 与 FastAPI 构建 Agent 知识检索原型
+          status: confirmed
+          scope: core_execution
+          source: user_note
+
+variants:
+  - name: "事实支持但简历缺失关键词"
+    expect: pass
+    expect_warnings: [ATS_KEYWORD_MISSING]
+    forbid_issues: [ATS_KEYWORD_UNSUPPORTED]
+    resume: |
+      # 周八
+      手机/微信：13800000000 ｜邮箱：zhouba@example.com
+      ## 个人优势
+      - **API 集成**：负责多个企业客户 OpenAPI 接入与上线。
+      - **Agent 实践**：构建 Agent 知识检索原型。
+      ## 工作经历
+      ### 某科技有限公司｜技术服务工程师
+      2021-07 ~ 2025-06
+      - **开放平台接入**：负责多个企业客户 OpenAPI 接入与上线。
+      ## 教育背景与认证
+      - 某大学｜计算机科学与技术｜本科｜2017-09 ~ 2021-06
+    claims:
+      - id: claim-001
+        text: 负责多个企业客户 OpenAPI 接入与上线
+        evidence: [fact-001]
+        relevance_rank: 1
+      - id: claim-002
+        text: 构建 Agent 知识检索原型
+        evidence: [fact-101]
+        relevance_rank: 2
+
+  - name: "简历出现无事实支持的关键词"
+    expect: pass
+    expect_warnings: [ATS_KEYWORD_UNSUPPORTED]
+    forbid_issues: [ATS_KEYWORD_MISSING]
+    resume: |
+      # 周八
+      手机/微信：13800000000 ｜邮箱：zhouba@example.com
+      ## 个人优势
+      - **API 集成**：负责多个企业客户 OpenAPI 接入与上线，熟悉 Python 与 FastAPI。
+      - **Agent 实践**：使用 Python 与 FastAPI 构建 Agent 知识检索原型，熟悉 Kubernetes 部署。
+      ## 工作经历
+      ### 某科技有限公司｜技术服务工程师
+      2021-07 ~ 2025-06
+      - **开放平台接入**：负责多个企业客户 OpenAPI 接入与上线。
+      ## 教育背景与认证
+      - 某大学｜计算机科学与技术｜本科｜2017-09 ~ 2021-06
+    claims:
+      - id: claim-001
+        text: 负责多个企业客户 OpenAPI 接入与上线
+        evidence: [fact-001]
+        relevance_rank: 1
+      - id: claim-002
+        text: 使用 Python 与 FastAPI 构建 Agent 知识检索原型
+        evidence: [fact-101]
+        relevance_rank: 2
+      - id: claim-003
+        text: 熟悉 Kubernetes 部署
+        evidence: []
+        claim_type: direct
+
+manual_checks:
+  - id: keyword-naturalness
+    metric: ats_keyword_coverage
+    prompt: |
+      人工确认：关键词是以真实技术名词自然出现在职责描述中，
+      而不是被硬塞成技能清单或形容词。

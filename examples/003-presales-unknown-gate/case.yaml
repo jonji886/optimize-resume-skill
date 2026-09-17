@@ -1,0 +1,40 @@
+name: "003-presales-unknown-gate"
+description: |
+  售前解决方案方向，验证 claim-level gate。
+  JD 的 4 条核心要求中 3 条有事实支持，Kubernetes 为 unknown。
+  正确行为：正常产出完整简历 + 把 Kubernetes 标为缺口，
+  而不是因为一条 unknown 就阻断整份简历。
+
+expect: pass
+
+# unknown 造成的未覆盖应以「没有事实支持」告警呈现，而不是报错或静默忽略
+expect_warnings:
+  - JD_REQUIREMENT_NO_EVIDENCE
+
+forbid_issues:
+  - JD_CORE_REQUIREMENT_UNCOVERED
+  - ATS_KEYWORD_MISSING
+  - ATS_KEYWORD_UNSUPPORTED
+  - SCOPE_INFLATION
+  - SCOPE_OVERREACH
+  - CLAIM_REFERENCES_UNKNOWN_FACT
+  - CLAIM_WITHOUT_EVIDENCE
+  - UNSUPPORTED_NUMBER
+  - RESUME_DUPLICATE_BULLET
+  - CLAIM_DUPLICATE_TEXT
+  - RECRUITER_SALIENCE_MISSING
+  - RESUME_PLACEHOLDER
+
+jd: |
+  售前解决方案工程师
+
+  职责：
+  - 与销售同行拜访客户，挖掘需求并输出行业解决方案
+  - 面向客户业务与 IT 团队开展技术交流与方案宣讲
+  - 负责 POC 立项、方案验证与验收
+
+  要求：
+  - 具备方案设计与宣讲能力
+  - 具备客户技术交流与需求挖掘能力
+  - 有 POC 项目经验
+  - 熟悉 Kubernetes 部署

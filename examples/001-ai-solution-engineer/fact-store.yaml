@@ -1,0 +1,125 @@
+meta:
+  candidate: 张三
+  target_role: AI解决方案工程师
+  resume_file: 张三-AI解决方案工程师.md
+  schema_version: 1
+
+jd:
+  title: AI 解决方案工程师
+  seniority: 中级
+  industry: 企业服务 / AI
+  core_requirements:
+    - Agent
+    - API 集成
+    - 客户交付
+    - Python
+  ats_keywords:
+    - Python
+    - FastAPI
+    - Agent
+    - RAG
+    - OpenAPI
+    - Webhook
+
+experiences:
+  - id: qunhe
+    employer: 杭州群核信息技术有限公司
+    role: 技术服务工程师
+    type: work
+    time_range: 2021-07 ~ 2025-06
+    facts:
+      - id: fact-001
+        statement: 面向企业客户梳理接口依赖与鉴权口径，完成 OpenAPI、OAuth/Token、Webhook 接入、联调与上线验收，累计支撑 80+ 应用上线
+        status: confirmed
+        scope: core_execution
+        source: original_resume
+        numbers: ["80"]
+        jd_requirements: [API 集成, 客户交付, OpenAPI, Webhook]
+      - id: fact-002
+        statement: 面向客户 IT 与业务团队梳理问题现象与影响范围，转化为研发需求与上线验证项
+        status: confirmed
+        scope: core_execution
+        source: original_resume
+        jd_requirements: [客户交付]
+      - id: fact-003
+        statement: 定位客户问题共性根因并回写产品需求
+        status: confirmed
+        scope: core_execution
+        source: original_resume
+      - id: fact-004
+        statement: 直接参与客户需求调研
+        status: denied
+        scope: support
+        source: user_correction
+        match_terms: [客户需求调研, 需求调研]
+      - id: fact-005
+        statement: 维护 API 文档、FAQ 与排障手册
+        status: confirmed
+        scope: support
+        source: original_resume
+
+projects:
+  - id: ai-workbench
+    name: AI 技术支持工作台
+    type: personal_project
+    commercial_delivery: false
+    delivery_status: not_delivered
+    role: 独立开发
+    time_range: 2025-03 ~ 2025-08
+    facts:
+      - id: fact-101
+        statement: 使用 Python 与 FastAPI 构建个人 AI 技术支持工作台
+        status: confirmed
+        scope: owner
+        source: user_note
+        jd_requirements: [Python, FastAPI]
+      - id: fact-102
+        statement: 基于 RAG 和 Agent 串联意图识别、查询改写、知识检索和答案生成，并使用测试集校验回答边界
+        status: confirmed
+        scope: owner
+        source: user_note
+        jd_requirements: [Agent, RAG]
+
+claims:
+  - id: claim-001
+    text: 累计支撑 80+ 企业应用完成开放平台接入与上线
+    evidence: [fact-001]
+    claim_type: direct
+    relevance_rank: 1
+    location: 个人优势/第 1 条
+  - id: claim-002
+    text: 使用 Python 与 FastAPI 基于 RAG 和 Agent 构建个人 AI 技术支持工作台
+    evidence: [fact-101, fact-102]
+    claim_type: direct
+    relevance_rank: 2
+    location: 个人优势/第 2 条
+  - id: claim-003
+    text: 面向客户 IT 与业务团队梳理问题现象与影响范围，转化为研发需求与上线验证项
+    evidence: [fact-002]
+    claim_type: direct
+    relevance_rank: 3
+    location: 个人优势/第 3 条
+  - id: claim-004
+    text: 面向企业客户梳理接口依赖与鉴权口径，完成 OpenAPI、OAuth/Token、Webhook 接入、联调与上线验收，累计支撑 80+ 应用上线
+    evidence: [fact-001]
+    claim_type: direct
+    relevance_rank: 1
+    location: 工作经历/群核/第 1 条
+  - id: claim-005
+    text: 梳理客户问题现象、影响范围与业务流程，定位共性根因并回写产品需求，跟进版本上线验证
+    evidence: [fact-002, fact-003]
+    claim_type: direct
+    relevance_rank: 2
+    location: 工作经历/群核/第 2 条
+  - id: claim-006
+    text: 维护 API 文档、FAQ 与排障手册
+    evidence: [fact-005]
+    claim_type: direct
+    relevance_rank: 5
+    location: 工作经历/群核/第 3 条
+  - id: claim-007
+    text: 基于 RAG 和 Agent 串联意图识别、查询改写、知识检索和答案生成，并使用测试集校验回答边界
+    evidence: [fact-102]
+    claim_type: direct
+    relevance_rank: 4
+    location: 项目经历/AI 技术支持工作台/第 1 条
